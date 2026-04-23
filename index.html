@@ -20,11 +20,8 @@
       --warn:#d97706;
     }
     *{box-sizing:border-box}
-    html,body{
-      margin:0;padding:0;background:var(--bg);color:var(--text);
-      font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif
-    }
-    body{padding-bottom:88px}
+    html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
+    body{padding-bottom:92px}
     .app{max-width:430px;margin:0 auto;min-height:100vh;background:var(--bg)}
     .header{
       position:sticky;top:0;z-index:20;background:rgba(255,255,255,.96);
@@ -116,7 +113,7 @@
 <div id="app" class="app"></div>
 
 <script>
-const STORAGE_KEY = "crm_vin_good_version_v1";
+const STORAGE_KEY = "crm_vin_consolidee_v1";
 const today = new Date().toISOString().slice(0,10);
 
 const defaultData = {
@@ -771,7 +768,7 @@ function renderRelances(){
     <div class="content">
       <div class="card">
         <div class="section-title">Ajouter une relance</div>
-        <input class="field" placeholder="Rechercher un client..." value="${esc(relanceSearch)}" oninput="setRelanceSearchValue(this.value)" />
+        <input id="relance-search" class="field" placeholder="Rechercher un client..." value="${esc(relanceSearch)}" oninput="setRelanceSearchValue(this.value)" />
         ${suggestions.length ? `
           <div class="suggestions">
             ${suggestions.map(c => `
@@ -916,7 +913,7 @@ function renderTour(){
 
       <div class="card">
         <div class="section-title">Ajouter à la tournée</div>
-        <input class="field" placeholder="Rechercher un client..." value="${esc(tourSearch)}" oninput="setTourSearchValue(this.value)" />
+        <input id="tour-search" class="field" placeholder="Rechercher un client..." value="${esc(tourSearch)}" oninput="setTourSearchValue(this.value)" />
         ${candidates.length ? `
           <div class="suggestions">
             ${candidates.slice(0,6).map(c => `<div class="suggestion" onclick="addClientToTour(${c.id})">${esc(c.name)} · ${esc(c.city)}</div>`).join("")}
