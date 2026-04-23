@@ -17,23 +17,22 @@
     .subtitle{font-size:12px;color:var(--muted);margin-top:4px}
     .content{padding:12px;display:flex;flex-direction:column;gap:12px}
     .card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px}
-    .card.dark{background:var(--dark);color:#fff;border-color:var(--dark)}
-    .muted{color:var(--muted);font-size:12px}
-    .name{font-weight:700}
-    .row{display:flex;align-items:center;justify-content:space-between;gap:10px}
-    .grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-    .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+    .card.dark{background:var(--dark);color:#fff}
     .btn{border:none;border-radius:10px;padding:10px 12px;background:#111;color:#fff;cursor:pointer}
     .btn.secondary{background:#fff;color:#111;border:1px solid var(--border)}
     .btn.soft{background:var(--soft);color:#111}
-    .btn.green{background:var(--green);color:#0b6b2d;border:1px solid #bfe3cb}
-    .btn.orange{background:var(--orange);color:#9a4d00;border:1px solid #f2d0a8}
     .btn.blue{background:var(--blue);color:#0f4ea8;border:1px solid #c3d9ff}
     .btn.red{background:var(--red);color:#b00020;border:1px solid #efb7c1}
     .field, select, textarea{width:100%;padding:10px;border:1px solid var(--border);border-radius:10px;background:#fff}
     textarea{min-height:70px;resize:vertical}
+    .grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+    .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
     .list{display:flex;flex-direction:column;gap:8px}
     .item{background:#fff;border:1px solid var(--border);border-radius:12px;padding:12px}
+    .row{display:flex;align-items:center;justify-content:space-between;gap:10px}
+    .name{font-weight:700}
+    .muted{color:var(--muted);font-size:12px}
+    .small{font-size:13px}
     .badge{display:inline-block;padding:4px 8px;border-radius:999px;font-size:12px}
     .badge.client{background:#dff5e5;color:#15703a}
     .badge.prospect{background:#fff2cc;color:#8a6400}
@@ -42,21 +41,25 @@
     .nav-inner{max-width:430px;margin:0 auto;display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
     .tab{border:none;background:transparent;padding:8px 4px;border-radius:10px;font-size:11px;color:#666}
     .tab.active{background:#111;color:#fff}
-    .stars{display:flex;gap:4px}
-    .star{font-size:22px;cursor:pointer;background:none;border:none}
-    .off{opacity:.25}
     .suggestions{display:flex;flex-direction:column;gap:6px;margin-top:8px}
     .suggestion{border:1px solid var(--border);border-radius:10px;padding:8px;background:#fff;cursor:pointer}
+    .order-line{display:grid;grid-template-columns:1fr 90px;gap:10px;align-items:center;margin-top:8px}
+    .stars{display:flex;gap:4px;flex-wrap:wrap}
+    .star{font-size:22px;cursor:pointer;background:none;border:none;padding:0}
+    .off{opacity:.25}
+    .stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+    .stats-card{background:#fff;border:1px solid var(--border);border-radius:12px;padding:12px;cursor:pointer}
+    .stat{font-size:28px;font-weight:700}
+    .periods{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
     .modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.4);display:flex;align-items:flex-end;justify-content:center;z-index:30}
     .modal{width:100%;max-width:430px;background:#fff;border-radius:16px 16px 0 0;padding:14px;max-height:85vh;overflow:auto}
-    .periods{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
   </style>
 </head>
 <body>
 <div id="app" class="app"></div>
 
 <script>
-const STORAGE_KEY = "crm_vin_avance_v1";
+const STORAGE_KEY = "crm_vin_final_stable_v3";
 const today = new Date().toISOString().slice(0,10);
 
 const defaultData = {
@@ -72,7 +75,7 @@ const defaultData = {
       address:"1 Pl. de l'Aire, 34600 Les Aires",
       phone:"0658269126",
       email:"julien.marine.aufildelaire@gmail.com",
-      contact:"Julien & Marine",
+      contact:"",
       notes:"Bon client actif.",
       lastVisit:"2026-04-20",
       nextFollowUp:"2026-05-11",
@@ -129,8 +132,11 @@ let state = {
   relanceSearch:"",
   tourSearch:"",
   ordersDate:"",
+  period:"1y",
+  manualStart:"",
+  manualEnd:"",
   modal:null,
-  period:"1y"
+  tastingDraft:{}
 };
 
 function loadData(){
@@ -142,7 +148,6 @@ function loadData(){
   }
 }
 function saveData(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); }
-function clone(x){ return JSON.parse(JSON.stringify(x)); }
 function nextId(arr){ return Math.max(0,...arr.map(x=>Number(x.id)||0))+1; }
 function nextHistoryId(){
   const ids = data.clients.flatMap(c => (c.history||[]).map(h => h.id || 0));
@@ -171,7 +176,11 @@ function monthsAgo(m){
   return d.toISOString().slice(0,10);
 }
 function inPeriod(dateStr){
-  if(state.period==="manual") return true;
+  if(state.period==="manual"){
+    const start = state.manualStart || "1900-01-01";
+    const end = state.manualEnd || "2999-12-31";
+    return dateStr >= start && dateStr <= end;
+  }
   if(state.period==="1m") return dateStr >= monthsAgo(1);
   if(state.period==="3m") return dateStr >= monthsAgo(3);
   if(state.period==="6m") return dateStr >= monthsAgo(6);
@@ -186,6 +195,7 @@ function go(screen, params={}){
   state.params = params;
   render();
 }
+
 function addHistory(clientId, type, text, date=today){
   const c = clientById(clientId);
   c.history = c.history || [];
@@ -210,7 +220,7 @@ function openTourMaps(){
 function allOrders(){
   const rows = [];
   data.clients.forEach(c => (c.orders||[]).forEach(o => rows.push({
-    clientId:c.id, clientName:c.name, city:c.city, ...clone(o)
+    clientId:c.id, clientName:c.name, city:c.city, ...JSON.parse(JSON.stringify(o))
   })));
   return rows.sort((a,b)=>b.date.localeCompare(a.date));
 }
@@ -292,9 +302,15 @@ function markVisited(id){
   saveData();
   render();
 }
+function openVisitedPicker(){
+  const input = document.getElementById("visited-manual-date");
+  if(!input) return;
+  if(input.showPicker) input.showPicker();
+  else input.focus();
+}
 function setVisitedManual(id){
   const date = document.getElementById("visited-manual-date").value;
-  if(!date) return alert("Choisis une date.");
+  if(!date) return;
   clientById(id).lastVisit = date;
   addHistory(id,"visite","Visité",date);
   saveData();
@@ -320,16 +336,21 @@ function addFollowUpForClient(id, date){
 }
 
 function setTasteRating(productId, rating){
-  const input = document.getElementById(`taste-rating-${productId}`);
-  if(input) input.value = String(rating);
+  if(!state.tastingDraft[productId]) state.tastingDraft[productId] = {rating:0, comment:""};
+  state.tastingDraft[productId].rating = rating;
   render();
+}
+function setTasteComment(productId, value){
+  if(!state.tastingDraft[productId]) state.tastingDraft[productId] = {rating:0, comment:""};
+  state.tastingDraft[productId].comment = value;
 }
 function addTastings(clientId){
   const c = clientById(clientId);
   let added = 0;
   activeProducts().forEach(p => {
-    const rating = Number(document.getElementById(`taste-rating-${p.id}`)?.value || 0);
-    const comment = document.getElementById(`taste-comment-${p.id}`)?.value.trim() || "";
+    const draft = state.tastingDraft[p.id] || {rating:0, comment:""};
+    const rating = Number(draft.rating || 0);
+    const comment = (draft.comment || "").trim();
     if(rating > 0 || comment){
       c.tastings.unshift({
         id:Date.now()+p.id,
@@ -343,6 +364,7 @@ function addTastings(clientId){
     }
   });
   if(!added) return alert("Renseigne au moins une dégustation.");
+  state.tastingDraft = {};
   saveData();
   render();
 }
@@ -490,18 +512,18 @@ function viewHome(){
     ${header("Bonjour 👋","Usage terrain")}
     <div class="content">
       <div class="card dark">
-        <div class="section-title">Tournée du jour</div>
+        <div class="name">Tournée du jour</div>
         <div class="muted">${data.tourList.length} étape(s)</div>
-        <div class="grid2" style="margin-top:10px">
+        <div class="grid2" style="margin-top:8px">
           <button class="btn secondary" onclick="go('tour')">Voir tournée</button>
           <button class="btn secondary" onclick="openTourMaps()">GPS tournée</button>
         </div>
       </div>
 
       <div class="grid3">
-        <div class="card clickable" onclick="go('clients')"><div class="stat">${data.clients.length}</div><div class="muted">Clients</div></div>
-        <div class="card clickable" onclick="go('relances')"><div class="stat">${urgent.length}</div><div class="muted">Relances</div></div>
-        <div class="card clickable" onclick="go('orders')"><div class="stat">${pending}</div><div class="muted">Cmd</div></div>
+        <div class="card" onclick="go('clients')"><div class="stat">${data.clients.length}</div><div class="muted">Clients</div></div>
+        <div class="card" onclick="go('relances')"><div class="stat">${urgent.length}</div><div class="muted">Relances</div></div>
+        <div class="card" onclick="go('orders')"><div class="stat">${pending}</div><div class="muted">Cmd</div></div>
       </div>
 
       <div class="card">
@@ -521,7 +543,7 @@ function viewClients(){
     ${header("Clients & prospects", `${rows.length} fiche(s)`)}
     <div class="content">
       <button class="btn" onclick="go('clientCreate')">+ Nouveau client</button>
-      <input id="client-search" class="field" placeholder="Rechercher un client, une ville..." value="${esc(state.clientSearch)}" oninput="setClientSearch(this.value)" />
+      <input id="client-search" class="field" placeholder="Rechercher un client, une ville..." value="${esc(state.clientSearch)}" oninput="setClientSearch(this.value)">
       ${suggestions.length ? `<div class="suggestions">${suggestions.map(c => `<div class="suggestion" onclick="go('client',{id:${c.id}})">${esc(c.name)} · ${esc(c.city)}</div>`).join("")}</div>` : ``}
       <div class="list">
         ${rows.map(c => `
@@ -572,7 +594,7 @@ function viewClient(id){
       <div class="card">
         <div class="row">
           <div>
-            <div class="name">${esc(c.contact || "Contact à compléter")}</div>
+            <div class="name">${esc(c.contact || "Visite et relance client")}</div>
             <div class="muted">${esc(c.city)} · ${esc(c.zone)}</div>
           </div>
           <span class="badge ${esc(c.status)}">${esc(c.status)}</span>
@@ -580,14 +602,14 @@ function viewClient(id){
 
         <div class="grid2" style="margin-top:10px">
           <button class="btn" onclick="markVisited(${c.id})">Visité</button>
-          <button class="btn secondary" onclick="setVisitedManual(${c.id})">Visité le</button>
+          <button class="btn secondary" onclick="openVisitedPicker()">Visité le</button>
           <button class="btn secondary" onclick="postponeFollowUp(${c.id},7)">+ 7 jours</button>
           <button class="btn secondary" onclick="postponeFollowUp(${c.id},14)">+ 14 jours</button>
           <button class="btn secondary" onclick="postponeFollowUp(${c.id},30)">+ 1 mois</button>
           <a class="btn secondary" target="_blank" href="${mapsUrl(c.address)}">📍 GPS</a>
         </div>
 
-        <input id="visited-manual-date" class="field" type="date" value="${esc(c.lastVisit || today)}" style="margin-top:8px">
+        <input id="visited-manual-date" class="field" type="date" value="${esc(c.lastVisit || today)}" style="margin-top:8px" onchange="setVisitedManual(${c.id})">
         <input id="manual-followup-date" class="field" type="date" value="${esc(c.nextFollowUp || "")}" style="margin-top:8px">
         <button class="btn" style="margin-top:8px" onclick="setManualFollowUp(${c.id})">Relance manuelle</button>
       </div>
@@ -595,17 +617,16 @@ function viewClient(id){
       <div class="card">
         <div class="section-title">Dégustation</div>
         ${products.map(p => {
-          const current = 0;
+          const draft = state.tastingDraft[p.id] || {rating:0, comment:""};
           return `
             <div class="item" style="cursor:default">
               <div class="row">
                 <div class="name">${esc(p.name)} ${esc(p.vintage)}</div>
                 <div class="stars">
-                  <input type="hidden" id="taste-rating-${p.id}" value="${current}">
-                  ${[1,2,3,4,5].map(n => `<button class="star ${current >= n ? '' : 'off'}" onclick="setTasteRating(${p.id},${n})">★</button>`).join("")}
+                  ${[1,2,3,4,5].map(n => `<button class="star ${draft.rating >= n ? '' : 'off'}" onclick="setTasteRating(${p.id},${n})">★</button>`).join("")}
                 </div>
               </div>
-              <textarea id="taste-comment-${p.id}" class="field" placeholder="Commentaire" style="margin-top:8px"></textarea>
+              <textarea id="taste-comment-${p.id}" class="field" placeholder="Commentaire" style="margin-top:8px" oninput="setTasteComment(${p.id}, this.value)">${esc(draft.comment || "")}</textarea>
             </div>
           `;
         }).join("")}
@@ -791,6 +812,15 @@ function viewProducts(){
         <button class="btn ${state.period==='1y'?'':'secondary'}" onclick="setPeriod('1y')">1a</button>
         <button class="btn ${state.period==='manual'?'':'secondary'}" onclick="setPeriod('manual')">manuel</button>
       </div>
+
+      ${state.period === "manual" ? `
+        <div class="card">
+          <div class="section-title">Période manuelle</div>
+          <input class="field" type="date" value="${esc(state.manualStart)}" onchange="setManualStart(this.value)">
+          <input class="field" type="date" value="${esc(state.manualEnd)}" style="margin-top:8px" onchange="setManualEnd(this.value)">
+        </div>
+      ` : ``}
+
       <div class="list">
         ${data.products.map(p => {
           const s = productStats(p.id);
@@ -827,12 +857,20 @@ function viewProduct(id){
         <button class="btn ${state.period==='manual'?'':'secondary'}" onclick="setPeriod('manual')">manuel</button>
       </div>
 
+      ${state.period === "manual" ? `
+        <div class="card">
+          <div class="section-title">Période manuelle</div>
+          <input class="field" type="date" value="${esc(state.manualStart)}" onchange="setManualStart(this.value)">
+          <input class="field" type="date" value="${esc(state.manualEnd)}" style="margin-top:8px" onchange="setManualEnd(this.value)">
+        </div>
+      ` : ``}
+
       <div class="stats-grid">
-        <div class="stats-card clickable" onclick="openProductClients(${p.id},'tastings')">
+        <div class="stats-card" onclick="openProductClients(${p.id},'tastings')">
           <div class="stat">${s.tastings.length}</div>
           <div class="muted">Dégustations</div>
         </div>
-        <div class="stats-card clickable" onclick="openProductClients(${p.id},'orders')">
+        <div class="stats-card" onclick="openProductClients(${p.id},'orders')">
           <div class="stat">${s.orders.reduce((sum,x)=>sum+x.qty,0)}</div>
           <div class="muted">Bt commandées</div>
         </div>
@@ -851,8 +889,8 @@ function viewTour(){
     ${header("Tournée du jour", `${data.tourList.length} étape(s)`)}
     <div class="content">
       <div class="card dark">
-        <div class="section-title">Tournée</div>
-        <button class="btn secondary" onclick="openTourMaps()">GPS tournée</button>
+        <div class="name">Tournée</div>
+        <button class="btn secondary" style="margin-top:8px" onclick="openTourMaps()">GPS tournée</button>
       </div>
 
       <div class="card">
@@ -920,6 +958,14 @@ function viewStats(){
         <button class="btn ${state.period==='manual'?'':'secondary'}" onclick="setPeriod('manual')">manuel</button>
       </div>
 
+      ${state.period === "manual" ? `
+        <div class="card">
+          <div class="section-title">Période manuelle</div>
+          <input class="field" type="date" value="${esc(state.manualStart)}" onchange="setManualStart(this.value)">
+          <input class="field" type="date" value="${esc(state.manualEnd)}" style="margin-top:8px" onchange="setManualEnd(this.value)">
+        </div>
+      ` : ``}
+
       <div class="stats-grid">
         <div class="stats-card"><div class="stat">${totalClients}</div><div class="muted">Clients total</div></div>
         <div class="stats-card"><div class="stat">${activeClients}</div><div class="muted">Clients actifs</div></div>
@@ -941,22 +987,6 @@ function viewStats(){
         <div class="section-title">Vins les plus commandés</div>
         <div class="list">
           ${topOrdered.length ? topOrdered.map(([id,count]) => `<div class="item" onclick="openProductClients(${id},'orders')">${esc(productById(id)?.name || 'Vin')} · ${count} bt</div>`).join("") : `<div class="muted">Aucune donnée.</div>`}
-        </div>
-      </div>
-    </div>
-  `;
-}
-
-function viewSettings(){
-  return `
-    ${header("Sauvegarde / export","Local")}
-    <div class="content">
-      <div class="card">
-        <div class="grid2">
-          <button class="btn blue" onclick="saveData(); alert('Données enregistrées.')">Sauvegarder</button>
-          <button class="btn secondary" onclick="exportJSON()">Exporter JSON</button>
-          <button class="btn secondary" onclick="exportClientsCSV()">Exporter CSV</button>
-          <button class="btn secondary" onclick="exportProductsCSV()">Produits CSV</button>
         </div>
       </div>
     </div>
@@ -1084,7 +1114,6 @@ function render(){
   if(state.screen==="product") html = viewProduct(state.params.id);
   if(state.screen==="tour") html = viewTour();
   if(state.screen==="stats") html = viewStats();
-  if(state.screen==="settings") html = viewSettings();
 
   const root = document.getElementById("app");
   const active = document.activeElement;
@@ -1112,6 +1141,8 @@ function setRelanceSearch(v){ state.relanceSearch = v; render(); }
 function setTourSearch(v){ state.tourSearch = v; render(); }
 function setOrdersDate(v){ state.ordersDate = v; render(); }
 function setPeriod(v){ state.period = v; render(); }
+function setManualStart(v){ state.manualStart = v; render(); }
+function setManualEnd(v){ state.manualEnd = v; render(); }
 function closeModal(){ state.modal = null; render(); }
 
 window.go = go;
@@ -1120,14 +1151,18 @@ window.setRelanceSearch = setRelanceSearch;
 window.setTourSearch = setTourSearch;
 window.setOrdersDate = setOrdersDate;
 window.setPeriod = setPeriod;
+window.setManualStart = setManualStart;
+window.setManualEnd = setManualEnd;
 window.createClient = createClient;
 window.saveClientEdits = saveClientEdits;
 window.markVisited = markVisited;
+window.openVisitedPicker = openVisitedPicker;
 window.setVisitedManual = setVisitedManual;
 window.postponeFollowUp = postponeFollowUp;
 window.setManualFollowUp = setManualFollowUp;
 window.addFollowUpForClient = addFollowUpForClient;
 window.setTasteRating = setTasteRating;
+window.setTasteComment = setTasteComment;
 window.addTastings = addTastings;
 window.addOrder = addOrder;
 window.toggleOrderStatus = toggleOrderStatus;
