@@ -23,6 +23,7 @@
     .btn.soft{background:var(--soft);color:#111}
     .btn.blue{background:var(--blue);color:#0f4ea8;border:1px solid #c3d9ff}
     .btn.red{background:var(--red);color:#b00020;border:1px solid #efb7c1}
+    .btn.green{background:var(--green);color:#136b34;border:1px solid #bfe4ca}
     .field, select, textarea{width:100%;padding:10px;border:1px solid var(--border);border-radius:10px;background:#fff}
     textarea{min-height:70px;resize:vertical}
     .grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
@@ -76,13 +77,17 @@
     .map-legend{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
     .legend-item{display:flex;align-items:center;gap:6px;font-size:12px;color:#555}
     .legend-dot{width:12px;height:12px;border-radius:50%}
+    .map-popup{
+      position:absolute;min-width:180px;max-width:220px;background:#fff;border:1px solid var(--border);
+      border-radius:12px;padding:10px;box-shadow:0 8px 20px rgba(0,0,0,.15);z-index:3
+    }
   </style>
 </head>
 <body>
 <div id="app" class="app"></div>
 
 <script>
-const STORAGE_KEY = "crm_vin_final_stable_v4_map";
+const STORAGE_KEY = "crm_vin_final_stable_v5_map_popup";
 const today = new Date().toISOString().slice(0,10);
 
 const defaultData = {
@@ -207,7 +212,8 @@ let state = {
   modal:null,
   tastingDraft:{},
   mapSelectionMode:false,
-  mapSelectedClientIds:[]
+  mapSelectedClientIds:[],
+  mapPopupClientId:null
 };
 
 function loadData(){
@@ -264,6 +270,7 @@ function activeProducts(){ return data.products.filter(p => p.active); }
 function go(screen, params={}){
   state.screen = screen;
   state.params = params;
+  state.mapPopupClientId = null;
   render();
 }
 
@@ -376,30 +383,34 @@ function markVisited(id){
   render();
 }
 function openVisitedPicker(){
-  const input = document.getElementById("visited-manual-date");
+  const input = document.getElementById("visited-manual-date-hidden");
   if(!input) return;
   if(input.showPicker) input.showPicker();
-  else input.focus();
+  else input.click();
 }
 function setVisitedManual(id){
-  const date = document.getElementById("visited-manual-date").value;
+  const date = document.getElementById("visited-manual-date-hidden").value;
   if(!date) return;
   clientById(id).lastVisit = date;
   addHistory(id,"visite","Visité",date);
   saveData();
   render();
 }
-function postponeFollowUp(id,days){
-  clientById(id).nextFollowUp = addDays(today,days);
-  saveData();
+function openRelanceModal(clientId){
+  state.modal = {type:"relanceChooser", clientId};
   render();
 }
-function setManualFollowUp(id){
-  const date = document.getElementById("manual-followup-date").value;
-  if(!date) return alert("Choisis une date.");
-  clientById(id).nextFollowUp = date;
+function applyRelance(clientId, days){
+  clientById(clientId).nextFollowUp = addDays(today, days);
   saveData();
-  render();
+  closeModal();
+}
+function applyRelanceManual(clientId){
+  const date = document.getElementById("relance-manual-date").value;
+  if(!date) return alert("Choisis une date.");
+  clientById(clientId).nextFollowUp = date;
+  saveData();
+  closeModal();
 }
 function addFollowUpForClient(id, date){
   if(!date) return alert("Choisis une date.");
@@ -517,20 +528,21 @@ function updateTourTime(index, value){
 
 function toggleMapSelectionMode(){
   state.mapSelectionMode = !state.mapSelectionMode;
+  state.mapPopupClientId = null;
   if(!state.mapSelectionMode) state.mapSelectedClientIds = [];
   render();
 }
 function mapPinClick(clientId){
-  if(state.mapSelectionMode){
-    if(state.mapSelectedClientIds.includes(clientId)){
-      state.mapSelectedClientIds = state.mapSelectedClientIds.filter(id => id !== clientId);
-    }else{
-      state.mapSelectedClientIds.push(clientId);
-    }
-    render();
-    return;
+  state.mapPopupClientId = clientId;
+  render();
+}
+function toggleMapSelectedClient(clientId){
+  if(state.mapSelectedClientIds.includes(clientId)){
+    state.mapSelectedClientIds = state.mapSelectedClientIds.filter(id => id !== clientId);
+  }else{
+    state.mapSelectedClientIds.push(clientId);
   }
-  go("client",{id:clientId});
+  render();
 }
 function removeMapSelectedClient(clientId){
   state.mapSelectedClientIds = state.mapSelectedClientIds.filter(id => id !== clientId);
@@ -541,8 +553,13 @@ function launchTourFromMap(){
   data.tourList = state.mapSelectedClientIds.map(id => ({id,time:""}));
   state.mapSelectionMode = false;
   state.mapSelectedClientIds = [];
+  state.mapPopupClientId = null;
   saveData();
   go("tour");
+}
+function closeMapPopup(){
+  state.mapPopupClientId = null;
+  render();
 }
 
 function productStats(productId){
@@ -603,6 +620,29 @@ function header(title, subtitle="", back=null){
           ${subtitle ? `<div class="subtitle">${subtitle}</div>` : ``}
         </div>
         ${back ? `<button class="btn soft" onclick="${back}">Retour</button>` : ``}
+      </div>
+    </div>
+  `;
+}
+
+function mapPopupHtml(){
+  if(state.mapPopupClientId == null) return "";
+  const c = clientById(state.mapPopupClientId);
+  if(!c) return "";
+  const isSelected = state.mapSelectedClientIds.includes(c.id);
+  const left = Math.min((c.mapX || 50) + 2, 70);
+  const top = Math.max((c.mapY || 50) - 18, 6);
+
+  return `
+    <div class="map-popup" style="left:${left}%; top:${top}%;">
+      <div class="name">${esc(c.name)}</div>
+      <div class="muted">${esc(c.city)} · ${esc(c.type)}</div>
+      <div class="muted" style="margin-top:4px">${esc(c.status)}</div>
+      <div class="grid2" style="margin-top:8px">
+        ${state.mapSelectionMode
+          ? `<button class="btn ${isSelected ? 'red' : 'green'}" onclick="toggleMapSelectedClient(${c.id})">${isSelected ? '−' : '+'}</button>`
+          : `<button class="btn blue" onclick="go('client',{id:${c.id}})">Fiche</button>`}
+        <button class="btn secondary" onclick="closeMapPopup()">Fermer</button>
       </div>
     </div>
   `;
@@ -706,15 +746,11 @@ function viewClient(id){
         <div class="grid2" style="margin-top:10px">
           <button class="btn" onclick="markVisited(${c.id})">Visité</button>
           <button class="btn secondary" onclick="openVisitedPicker()">Visité le</button>
-          <button class="btn secondary" onclick="postponeFollowUp(${c.id},7)">+ 7 jours</button>
-          <button class="btn secondary" onclick="postponeFollowUp(${c.id},14)">+ 14 jours</button>
-          <button class="btn secondary" onclick="postponeFollowUp(${c.id},30)">+ 1 mois</button>
+          <button class="btn secondary" onclick="openRelanceModal(${c.id})">Relance</button>
           <a class="btn secondary" target="_blank" href="${mapsUrl(c.address)}">📍 GPS</a>
         </div>
 
-        <input id="visited-manual-date" class="field" type="date" value="${esc(c.lastVisit || today)}" style="margin-top:8px" onchange="setVisitedManual(${c.id})">
-        <input id="manual-followup-date" class="field" type="date" value="${esc(c.nextFollowUp || "")}" style="margin-top:8px">
-        <button class="btn" style="margin-top:8px" onclick="setManualFollowUp(${c.id})">Relance manuelle</button>
+        <input id="visited-manual-date-hidden" type="date" value="${esc(c.lastVisit || today)}" style="position:absolute;left:-9999px;opacity:0" onchange="setVisitedManual(${c.id})">
       </div>
 
       <div class="card">
@@ -988,7 +1024,7 @@ function viewProduct(id){
 
 function viewMap(){
   return `
-    ${header("Carte clients", state.mapSelectionMode ? "Mode sélection tournée" : "Cliquer sur un client pour ouvrir sa fiche")}
+    ${header("Carte clients", state.mapSelectionMode ? "Mode sélection tournée" : "Cliquer sur un point pour voir le client")}
     <div class="content">
       <div class="card">
         <div class="grid2">
@@ -1006,6 +1042,7 @@ function viewMap(){
               title="${esc(c.name)}"
             ></button>
           `).join("")}
+          ${mapPopupHtml()}
         </div>
 
         <div class="map-legend">
@@ -1230,6 +1267,26 @@ function renderModal(){
       </div>
     `;
   }
+  if(state.modal.type==="relanceChooser"){
+    const c = clientById(state.modal.clientId);
+    return `
+      <div class="modal-backdrop" onclick="closeModal()">
+        <div class="modal" onclick="event.stopPropagation()">
+          <div class="row">
+            <div><div class="name">Relance</div><div class="muted">${esc(c.name)}</div></div>
+            <button class="btn soft" onclick="closeModal()">Fermer</button>
+          </div>
+          <div class="grid2" style="margin-top:10px">
+            <button class="btn secondary" onclick="applyRelance(${c.id},7)">+ 7 jours</button>
+            <button class="btn secondary" onclick="applyRelance(${c.id},14)">+ 14 jours</button>
+            <button class="btn secondary" onclick="applyRelance(${c.id},30)">+ 1 mois</button>
+          </div>
+          <input id="relance-manual-date" class="field" type="date" style="margin-top:10px">
+          <button class="btn" style="margin-top:10px" onclick="applyRelanceManual(${c.id})">Date manuelle</button>
+        </div>
+      </div>
+    `;
+  }
   return "";
 }
 
@@ -1317,8 +1374,9 @@ window.saveClientEdits = saveClientEdits;
 window.markVisited = markVisited;
 window.openVisitedPicker = openVisitedPicker;
 window.setVisitedManual = setVisitedManual;
-window.postponeFollowUp = postponeFollowUp;
-window.setManualFollowUp = setManualFollowUp;
+window.openRelanceModal = openRelanceModal;
+window.applyRelance = applyRelance;
+window.applyRelanceManual = applyRelanceManual;
 window.addFollowUpForClient = addFollowUpForClient;
 window.setTasteRating = setTasteRating;
 window.setTasteComment = setTasteComment;
@@ -1336,8 +1394,10 @@ window.updateTourTime = updateTourTime;
 window.openTourMaps = openTourMaps;
 window.toggleMapSelectionMode = toggleMapSelectionMode;
 window.mapPinClick = mapPinClick;
+window.toggleMapSelectedClient = toggleMapSelectedClient;
 window.removeMapSelectedClient = removeMapSelectedClient;
 window.launchTourFromMap = launchTourFromMap;
+window.closeMapPopup = closeMapPopup;
 window.openProductClients = openProductClients;
 window.exportJSON = exportJSON;
 window.exportClientsCSV = exportClientsCSV;
