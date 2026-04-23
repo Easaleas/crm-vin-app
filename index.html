@@ -87,7 +87,7 @@
 <div id="app" class="app"></div>
 
 <script>
-const STORAGE_KEY = "crm_vin_final_stable_v5_map_popup";
+const STORAGE_KEY = "crm_vin_final_stable_v6_saved_tours";
 const today = new Date().toISOString().slice(0,10);
 
 const defaultData = {
@@ -195,10 +195,13 @@ const defaultData = {
   tourList:[
     {id:1,time:"09:30"},
     {id:2,time:"11:00"}
-  ]
+  ],
+  savedTours:[]
 };
 
 let data = loadData();
+if(!data.savedTours) data.savedTours = [];
+
 let state = {
   screen:"home",
   params:{},
@@ -229,6 +232,9 @@ function nextId(arr){ return Math.max(0,...arr.map(x=>Number(x.id)||0))+1; }
 function nextHistoryId(){
   const ids = data.clients.flatMap(c => (c.history||[]).map(h => h.id || 0));
   return Math.max(0,...ids)+1;
+}
+function nextSavedTourId(){
+  return Math.max(0,...(data.savedTours||[]).map(t => Number(t.id)||0))+1;
 }
 function esc(v){
   return String(v ?? "")
@@ -524,6 +530,32 @@ function moveTourDown(index){
 function updateTourTime(index, value){
   data.tourList[index].time = value;
   saveData();
+}
+function saveCurrentTour(){
+  const name = document.getElementById("saved-tour-name").value.trim();
+  const date = document.getElementById("saved-tour-date").value.trim();
+  if(!name) return alert("Donne un nom à la tournée.");
+  if(!data.tourList.length) return alert("La tournée active est vide.");
+  data.savedTours.unshift({
+    id: nextSavedTourId(),
+    name,
+    date: date || "",
+    tourList: JSON.parse(JSON.stringify(data.tourList))
+  });
+  saveData();
+  render();
+}
+function loadSavedTour(savedTourId){
+  const t = data.savedTours.find(x => x.id === Number(savedTourId));
+  if(!t) return;
+  data.tourList = JSON.parse(JSON.stringify(t.tourList || []));
+  saveData();
+  render();
+}
+function deleteSavedTour(savedTourId){
+  data.savedTours = data.savedTours.filter(t => t.id !== Number(savedTourId));
+  saveData();
+  render();
 }
 
 function toggleMapSelectionMode(){
@@ -1078,19 +1110,28 @@ function viewMap(){
 }
 
 function viewTour(){
-  const candidates = tourCandidates();
   return `
     ${header("Tournée du jour", `${data.tourList.length} étape(s)`)}
     <div class="content">
       <div class="card dark">
         <div class="name">Tournée</div>
-        <button class="btn secondary" style="margin-top:8px" onclick="openTourMaps()">GPS tournée</button>
+        <div class="grid2" style="margin-top:8px">
+          <button class="btn secondary" onclick="openTourMaps()">GPS tournée</button>
+          <button class="btn secondary" onclick="go('map')">Carte</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="section-title">Enregistrer la tournée</div>
+        <input id="saved-tour-name" class="field" placeholder="Nom de la tournée">
+        <input id="saved-tour-date" class="field" type="date" style="margin-top:8px">
+        <button class="btn" style="margin-top:8px" onclick="saveCurrentTour()">Enregistrer la tournée</button>
       </div>
 
       <div class="card">
         <div class="section-title">Ajouter à la tournée</div>
         <input id="tour-search" class="field" placeholder="Rechercher un client..." value="${esc(state.tourSearch)}" oninput="setTourSearch(this.value)">
-        ${candidates.length ? `<div class="suggestions">${candidates.slice(0,6).map(c => `<div class="suggestion" onclick="addClientToTour(${c.id})">${esc(c.name)} · ${esc(c.city)}</div>`).join("")}</div>` : ``}
+        ${tourCandidates().length ? `<div class="suggestions">${tourCandidates().slice(0,6).map(c => `<div class="suggestion" onclick="addClientToTour(${c.id})">${esc(c.name)} · ${esc(c.city)}</div>`).join("")}</div>` : ``}
       </div>
 
       <div class="list">
@@ -1115,6 +1156,27 @@ function viewTour(){
             </div>
           `;
         }).join("")}
+        ${!data.tourList.length ? `<div class="muted">Aucune tournée active.</div>` : ``}
+      </div>
+
+      <div class="card">
+        <div class="section-title">Tournées enregistrées</div>
+        <div class="list">
+          ${(data.savedTours||[]).length ? data.savedTours.map(t => `
+            <div class="item">
+              <div class="row">
+                <div>
+                  <div class="name">${esc(t.name)}</div>
+                  <div class="muted">${t.date ? fmtDate(t.date) : "Sans date"} · ${(t.tourList || []).length} étape(s)</div>
+                </div>
+              </div>
+              <div class="grid2" style="margin-top:8px">
+                <button class="btn blue" onclick="loadSavedTour(${t.id})">Charger</button>
+                <button class="btn red" onclick="deleteSavedTour(${t.id})">Supprimer</button>
+              </div>
+            </div>
+          `).join("") : `<div class="muted">Aucune tournée enregistrée.</div>`}
+        </div>
       </div>
     </div>
   `;
@@ -1391,6 +1453,9 @@ window.removeFromTour = removeFromTour;
 window.moveTourUp = moveTourUp;
 window.moveTourDown = moveTourDown;
 window.updateTourTime = updateTourTime;
+window.saveCurrentTour = saveCurrentTour;
+window.loadSavedTour = loadSavedTour;
+window.deleteSavedTour = deleteSavedTour;
 window.openTourMaps = openTourMaps;
 window.toggleMapSelectionMode = toggleMapSelectionMode;
 window.mapPinClick = mapPinClick;
