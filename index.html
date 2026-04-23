@@ -16,3 +16,1798 @@
     .title{font-size:22px;font-weight:700}
     .subtitle{font-size:12px;color:var(--muted);margin-top:4px}
     .content{padding:12px;display:flex;flex-direction:column;gap:12px}
+    .card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px}
+    .card.dark{background:var(--dark);color:#fff}
+    .btn{border:none;border-radius:10px;padding:10px 12px;background:#111;color:#fff;cursor:pointer}
+    .btn.secondary{background:#fff;color:#111;border:1px solid var(--border)}
+    .btn.soft{background:var(--soft);color:#111}
+    .btn.blue{background:var(--blue);color:#0f4ea8;border:1px solid #c3d9ff}
+    .btn.red{background:var(--red);color:#b00020;border:1px solid #efb7c1}
+    .btn.green{background:var(--green);color:#136b34;border:1px solid #bfe4ca}
+    .field, select, textarea{width:100%;padding:10px;border:1px solid var(--border);border-radius:10px;background:#fff}
+    textarea{min-height:70px;resize:vertical}
+    .grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+    .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+    .list{display:flex;flex-direction:column;gap:8px}
+    .item{background:#fff;border:1px solid var(--border);border-radius:12px;padding:12px}
+    .row{display:flex;align-items:center;justify-content:space-between;gap:10px}
+    .name{font-weight:700}
+    .muted{color:var(--muted);font-size:12px}
+    .small{font-size:13px}
+    .badge{display:inline-block;padding:4px 8px;border-radius:999px;font-size:12px}
+    .badge.client{background:#dff5e5;color:#15703a}
+    .badge.prospect{background:#fff2cc;color:#8a6400}
+    .badge.inactif{background:#eee;color:#555}
+    .nav{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid var(--border);padding:8px}
+    .nav-inner{max-width:430px;margin:0 auto;display:grid;grid-template-columns:repeat(8,1fr);gap:6px}
+    .tab{border:none;background:transparent;padding:8px 4px;border-radius:10px;font-size:11px;color:#666}
+    .tab.active{background:#111;color:#fff}
+    .suggestions{display:flex;flex-direction:column;gap:6px;margin-top:8px}
+    .suggestion{border:1px solid var(--border);border-radius:10px;padding:8px;background:#fff;cursor:pointer}
+    .order-line{display:grid;grid-template-columns:1fr 90px;gap:10px;align-items:center;margin-top:8px}
+    .stars{display:flex;gap:4px;flex-wrap:wrap}
+    .star{font-size:22px;cursor:pointer;background:none;border:none;padding:0}
+    .off{opacity:.25}
+    .stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+    .stats-card{background:#fff;border:1px solid var(--border);border-radius:12px;padding:12px;cursor:pointer}
+    .stat{font-size:28px;font-weight:700}
+    .periods{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+    .modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.4);display:flex;align-items:flex-end;justify-content:center;z-index:30}
+    .modal{width:100%;max-width:430px;background:#fff;border-radius:16px 16px 0 0;padding:14px;max-height:85vh;overflow:auto}
+    .mapbox{
+      position:relative;height:360px;border-radius:14px;overflow:hidden;
+      background:linear-gradient(135deg,#d7dde5,#edf0f4);border:1px solid var(--border)
+    }
+    .mapgrid{
+      position:absolute;inset:0;opacity:.35;
+      background-image:
+        linear-gradient(90deg, rgba(255,255,255,.8) 1px, transparent 1px),
+        linear-gradient(rgba(255,255,255,.8) 1px, transparent 1px);
+      background-size:36px 36px;
+    }
+    .pin{
+      position:absolute;width:20px;height:20px;border-radius:50%;
+      border:4px solid #fff;box-shadow:0 4px 10px rgba(0,0,0,.15);cursor:pointer;
+      transform:translate(-50%,-50%);
+    }
+    .pin.client{background:#22c55e}
+    .pin.prospect{background:#f59e0b}
+    .pin.inactif{background:#9ca3af}
+    .pin.selected{box-shadow:0 0 0 4px rgba(17,17,17,.2), 0 4px 10px rgba(0,0,0,.2)}
+    .map-legend{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+    .legend-item{display:flex;align-items:center;gap:6px;font-size:12px;color:#555}
+    .legend-dot{width:12px;height:12px;border-radius:50%}
+    .map-popup{
+      position:absolute;min-width:180px;max-width:220px;background:#fff;border:1px solid var(--border);
+      border-radius:12px;padding:10px;box-shadow:0 8px 20px rgba(0,0,0,.15);z-index:3
+    }
+    .calendar-head{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:6px}
+    .calendar-head div{font-size:11px;color:#666;text-align:center}
+    .calendar-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+    .calendar-cell{
+      min-height:58px;background:#fff;border:1px solid var(--border);border-radius:10px;
+      padding:6px;cursor:pointer;display:flex;flex-direction:column;gap:4px
+    }
+    .calendar-cell.out{opacity:.35}
+    .calendar-cell.active{border-color:#111}
+    .calendar-num{font-size:12px;font-weight:700}
+    .rdv-dot{height:6px;border-radius:999px;background:#111}
+  </style>
+</head>
+<body>
+<div id="app" class="app"></div>
+
+<script>
+const STORAGE_KEY = "crm_vin_final_v7_rdv";
+const today = new Date().toISOString().slice(0,10);
+
+const defaultData = {
+  clients: [
+    {
+      id:1,
+      name:"Au fil de l’aire",
+      type:"CHR",
+      tariff:"CHR",
+      status:"client",
+      city:"Les Aires",
+      zone:"Hérault",
+      address:"1 Pl. de l'Aire, 34600 Les Aires",
+      phone:"0658269126",
+      email:"julien.marine.aufildelaire@gmail.com",
+      contact:"",
+      notes:"Bon client actif.",
+      lastVisit:"2026-04-20",
+      nextFollowUp:"2026-05-11",
+      mapX:20,
+      mapY:78,
+      tastings:[{id:1,date:"2026-04-20",productId:1,rating:5,comment:"Très bon retour"}],
+      orders:[{id:1,date:"2026-04-20",status:"sent",comment:"",items:[{productId:1,qty:12},{productId:5,qty:6}]}],
+      history:[
+        {id:1,date:"2026-04-20",type:"visite",text:"Visité"},
+        {id:2,date:"2026-04-20",type:"dégustation",text:"Les Collines Rouge ★★★★★ — Très bon retour"},
+        {id:3,date:"2026-04-20",type:"commande",text:"Les Collines Rouge x12, Les Collines Blanc x6"}
+      ]
+    },
+    {
+      id:2,
+      name:"Oli'vins",
+      type:"Caviste",
+      tariff:"Caviste",
+      status:"prospect",
+      city:"Mauguio",
+      zone:"Hérault",
+      address:"248 Bd de la Démocratie, 34130 Mauguio",
+      phone:"0685842191",
+      email:"",
+      contact:"",
+      notes:"Aime Collines et Allegro.",
+      lastVisit:"",
+      nextFollowUp:"2026-04-24",
+      mapX:78,
+      mapY:26,
+      tastings:[],
+      orders:[],
+      history:[]
+    },
+    {
+      id:3,
+      name:"La Cave du Centre",
+      type:"Caviste",
+      tariff:"Caviste",
+      status:"client",
+      city:"Béziers",
+      zone:"Hérault",
+      address:"Centre Béziers",
+      phone:"",
+      email:"",
+      contact:"",
+      notes:"",
+      lastVisit:"",
+      nextFollowUp:"",
+      mapX:36,
+      mapY:55,
+      tastings:[],
+      orders:[],
+      history:[]
+    },
+    {
+      id:4,
+      name:"Le Comptoir",
+      type:"CHR",
+      tariff:"CHR",
+      status:"prospect",
+      city:"Montpellier",
+      zone:"Hérault",
+      address:"Montpellier centre",
+      phone:"",
+      email:"",
+      contact:"",
+      notes:"",
+      lastVisit:"",
+      nextFollowUp:"",
+      mapX:70,
+      mapY:40,
+      tastings:[],
+      orders:[],
+      history:[]
+    }
+  ],
+  products: [
+    {id:1,name:"Les Collines Rouge",family:"Les Collines",vintage:"2021",color:"Rouge",active:true},
+    {id:2,name:"Les Collines Rosé",family:"Les Collines",vintage:"2025",color:"Rosé",active:true},
+    {id:3,name:"Tournée Générale",family:"Tournée Générale",vintage:"2024",color:"Rouge",active:true},
+    {id:4,name:"Allegro",family:"Allegro",vintage:"2023",color:"Blanc",active:true},
+    {id:5,name:"Les Collines Blanc",family:"Les Collines",vintage:"2025",color:"Blanc",active:true}
+  ],
+  tourList:[
+    {id:1,time:"09:30"},
+    {id:2,time:"11:00"}
+  ],
+  savedTours:[],
+  appointments:[]
+};
+
+let data = loadData();
+if(!data.savedTours) data.savedTours = [];
+if(!data.appointments) data.appointments = [];
+
+let state = {
+  screen:"home",
+  params:{},
+  clientSearch:"",
+  relanceSearch:"",
+  tourSearch:"",
+  ordersDate:"",
+  period:"1y",
+  manualStart:"",
+  manualEnd:"",
+  modal:null,
+  tastingDraft:{},
+  mapSelectionMode:false,
+  mapSelectedClientIds:[],
+  mapPopupClientId:null,
+  rdvView:"list",
+  calendarMonth: new Date().getMonth(),
+  calendarYear: new Date().getFullYear(),
+  selectedCalendarDate: today
+};
+
+function loadData(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    return raw ? JSON.parse(raw) : JSON.parse(JSON.stringify(defaultData));
+  }catch{
+    return JSON.parse(JSON.stringify(defaultData));
+  }
+}
+function saveData(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); }
+function nextId(arr){ return Math.max(0,...arr.map(x=>Number(x.id)||0))+1; }
+function nextHistoryId(){
+  const ids = data.clients.flatMap(c => (c.history||[]).map(h => h.id || 0));
+  return Math.max(0,...ids)+1;
+}
+function nextSavedTourId(){
+  return Math.max(0,...(data.savedTours||[]).map(t => Number(t.id)||0))+1;
+}
+function nextAppointmentId(){
+  return Math.max(0,...(data.appointments||[]).map(a => Number(a.id)||0))+1;
+}
+function esc(v){
+  return String(v ?? "")
+    .replace(/&/g,"&amp;")
+    .replace(/</g,"&lt;")
+    .replace(/>/g,"&gt;")
+    .replace(/"/g,"&quot;");
+}
+function fmtDate(v){
+  if(!v) return "—";
+  const d = new Date(v);
+  return isNaN(d) ? v : d.toLocaleDateString("fr-FR");
+}
+function addDays(date, days){
+  const d = new Date(date || today);
+  d.setDate(d.getDate()+days);
+  return d.toISOString().slice(0,10);
+}
+function monthsAgo(m){
+  const d = new Date();
+  d.setMonth(d.getMonth()-m);
+  return d.toISOString().slice(0,10);
+}
+function inPeriod(dateStr){
+  if(state.period==="manual"){
+    const start = state.manualStart || "1900-01-01";
+    const end = state.manualEnd || "2999-12-31";
+    return dateStr >= start && dateStr <= end;
+  }
+  if(state.period==="1m") return dateStr >= monthsAgo(1);
+  if(state.period==="3m") return dateStr >= monthsAgo(3);
+  if(state.period==="6m") return dateStr >= monthsAgo(6);
+  return dateStr >= monthsAgo(12);
+}
+function clientById(id){ return data.clients.find(c => c.id===Number(id)); }
+function productById(id){ return data.products.find(p => p.id===Number(id)); }
+function appointmentById(id){ return data.appointments.find(a => a.id===Number(id)); }
+function activeProducts(){ return data.products.filter(p => p.active); }
+
+function go(screen, params={}){
+  state.screen = screen;
+  state.params = params;
+  state.mapPopupClientId = null;
+  render();
+}
+
+function addHistory(clientId, type, text, date=today){
+  const c = clientById(clientId);
+  c.history = c.history || [];
+  c.history.unshift({id:nextHistoryId(), date, type, text});
+}
+function mapsUrl(address){
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
+}
+function openTourMaps(){
+  const clients = data.tourList.map(t => clientById(t.id)).filter(Boolean);
+  if(!clients.length) return alert("Aucun client dans la tournée.");
+  const addresses = clients.map(c => c.address).filter(Boolean);
+  if(!addresses.length) return alert("Aucune adresse exploitable.");
+  const origin = addresses[0];
+  const destination = addresses[addresses.length-1];
+  const waypoints = addresses.slice(1,-1).join("|");
+  let url = `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(origin)}&destination=${encodeURIComponent(destination)}&travelmode=driving`;
+  if(waypoints) url += `&waypoints=${encodeURIComponent(waypoints)}`;
+  window.open(url,"_blank");
+}
+
+function allOrders(){
+  const rows = [];
+  data.clients.forEach(c => (c.orders||[]).forEach(o => rows.push({
+    clientId:c.id, clientName:c.name, city:c.city, ...JSON.parse(JSON.stringify(o))
+  })));
+  return rows.sort((a,b)=>b.date.localeCompare(a.date));
+}
+function filteredOrders(){
+  return allOrders().filter(o => !state.ordersDate || o.date===state.ordersDate);
+}
+function dueToday(){
+  return data.clients.filter(c => c.nextFollowUp && c.nextFollowUp <= today).sort((a,b)=>a.nextFollowUp.localeCompare(b.nextFollowUp));
+}
+function dueNext3(){
+  const max = addDays(today,3);
+  return data.clients.filter(c => c.nextFollowUp && c.nextFollowUp > today && c.nextFollowUp <= max).sort((a,b)=>a.nextFollowUp.localeCompare(b.nextFollowUp));
+}
+function dueLater(){
+  const min = addDays(today,3);
+  return data.clients.filter(c => c.nextFollowUp && c.nextFollowUp > min).sort((a,b)=>a.nextFollowUp.localeCompare(b.nextFollowUp));
+}
+function clientSuggestions(q){
+  if(!q.trim()) return [];
+  return data.clients.filter(c => `${c.name} ${c.city}`.toLowerCase().includes(q.toLowerCase())).slice(0,6);
+}
+function filteredClients(){
+  return data.clients.filter(c => `${c.name} ${c.city} ${c.type} ${c.tariff} ${c.status} ${c.notes}`.toLowerCase().includes(state.clientSearch.toLowerCase()));
+}
+function tourCandidates(){
+  const ids = new Set(data.tourList.map(t=>t.id));
+  return data.clients.filter(c => !ids.has(c.id) && `${c.name} ${c.city}`.toLowerCase().includes(state.tourSearch.toLowerCase()));
+}
+
+function appointmentsToday(){
+  return data.appointments.filter(a => a.date === today).sort((a,b)=>(a.time||"").localeCompare(b.time||""));
+}
+function appointmentsUpcoming(){
+  return data.appointments.filter(a => a.date > today).sort((a,b)=> (a.date + (a.time||"")).localeCompare(b.date + (b.time||"")));
+}
+function appointmentsForDate(date){
+  return data.appointments.filter(a => a.date === date).sort((a,b)=>(a.time||"").localeCompare(b.time||""));
+}
+
+function createClient(){
+  const name = document.getElementById("new-client-name").value.trim();
+  if(!name) return alert("Le nom du client est obligatoire.");
+  const c = {
+    id:nextId(data.clients),
+    name,
+    type:document.getElementById("new-client-type").value,
+    tariff:document.getElementById("new-client-tariff").value,
+    status:document.getElementById("new-client-status").value,
+    city:document.getElementById("new-client-city").value.trim(),
+    zone:document.getElementById("new-client-zone").value.trim(),
+    address:document.getElementById("new-client-address").value.trim(),
+    phone:document.getElementById("new-client-phone").value.trim(),
+    email:document.getElementById("new-client-email").value.trim(),
+    contact:document.getElementById("new-client-contact").value.trim(),
+    notes:document.getElementById("new-client-notes").value.trim(),
+    lastVisit:"",
+    nextFollowUp:"",
+    mapX:50,
+    mapY:50,
+    tastings:[],
+    orders:[],
+    history:[{id:nextHistoryId(),date:today,type:"création",text:"Fiche créée manuellement"}]
+  };
+  data.clients.unshift(c);
+  saveData();
+  go("client",{id:c.id});
+}
+
+function saveClientEdits(id){
+  const c = clientById(id);
+  c.name = document.getElementById("edit-client-name").value.trim();
+  c.contact = document.getElementById("edit-client-contact").value.trim();
+  c.phone = document.getElementById("edit-client-phone").value.trim();
+  c.email = document.getElementById("edit-client-email").value.trim();
+  c.address = document.getElementById("edit-client-address").value.trim();
+  c.city = document.getElementById("edit-client-city").value.trim();
+  c.zone = document.getElementById("edit-client-zone").value.trim();
+  c.type = document.getElementById("edit-client-type").value;
+  c.tariff = document.getElementById("edit-client-tariff").value;
+  c.status = document.getElementById("edit-client-status").value;
+  c.notes = document.getElementById("edit-client-notes").value.trim();
+  saveData();
+  render();
+}
+
+function markVisited(id){
+  const c = clientById(id);
+  c.lastVisit = today;
+  c.nextFollowUp = addDays(today,21);
+  addHistory(id,"visite","Visité",today);
+  saveData();
+  render();
+}
+function openVisitedPicker(){
+  const input = document.getElementById("visited-manual-date-hidden");
+  if(!input) return;
+  if(input.showPicker) input.showPicker();
+  else input.click();
+}
+function setVisitedManual(id){
+  const date = document.getElementById("visited-manual-date-hidden").value;
+  if(!date) return;
+  clientById(id).lastVisit = date;
+  addHistory(id,"visite","Visité",date);
+  saveData();
+  render();
+}
+function openRelanceModal(clientId){
+  state.modal = {type:"relanceChooser", clientId};
+  render();
+}
+function applyRelance(clientId, days){
+  clientById(clientId).nextFollowUp = addDays(today, days);
+  saveData();
+  closeModal();
+}
+function applyRelanceManual(clientId){
+  const date = document.getElementById("relance-manual-date").value;
+  if(!date) return alert("Choisis une date.");
+  clientById(clientId).nextFollowUp = date;
+  saveData();
+  closeModal();
+}
+function addFollowUpForClient(id, date){
+  if(!date) return alert("Choisis une date.");
+  clientById(id).nextFollowUp = date;
+  saveData();
+  render();
+}
+
+function openAppointmentCreate(clientId){
+  state.modal = {type:"appointmentCreate", clientId};
+  render();
+}
+function createAppointment(clientId){
+  const date = document.getElementById("appointment-date").value;
+  const time = document.getElementById("appointment-time").value;
+  const note = document.getElementById("appointment-note").value.trim();
+  if(!date) return alert("Choisis une date.");
+  data.appointments.unshift({
+    id: nextAppointmentId(),
+    clientId,
+    date,
+    time,
+    note
+  });
+  saveData();
+  closeModal();
+}
+function openAppointmentDetail(appointmentId){
+  state.modal = {type:"appointmentDetail", appointmentId};
+  render();
+}
+function openAppointmentEdit(appointmentId){
+  state.modal = {type:"appointmentEdit", appointmentId};
+  render();
+}
+function saveAppointmentEdit(appointmentId){
+  const a = appointmentById(appointmentId);
+  const date = document.getElementById("edit-appointment-date").value;
+  const time = document.getElementById("edit-appointment-time").value;
+  const note = document.getElementById("edit-appointment-note").value.trim();
+  if(!date) return alert("Choisis une date.");
+  a.date = date;
+  a.time = time;
+  a.note = note;
+  saveData();
+  closeModal();
+}
+function deleteAppointment(appointmentId){
+  data.appointments = data.appointments.filter(a => a.id !== Number(appointmentId));
+  saveData();
+  closeModal();
+}
+
+function setTasteRating(productId, rating){
+  if(!state.tastingDraft[productId]) state.tastingDraft[productId] = {rating:0, comment:""};
+  state.tastingDraft[productId].rating = rating;
+  render();
+}
+function setTasteComment(productId, value){
+  if(!state.tastingDraft[productId]) state.tastingDraft[productId] = {rating:0, comment:""};
+  state.tastingDraft[productId].comment = value;
+}
+function addTastings(clientId){
+  const c = clientById(clientId);
+  let added = 0;
+  activeProducts().forEach(p => {
+    const draft = state.tastingDraft[p.id] || {rating:0, comment:""};
+    const rating = Number(draft.rating || 0);
+    const comment = (draft.comment || "").trim();
+    if(rating > 0 || comment){
+      c.tastings.unshift({
+        id:Date.now()+p.id,
+        date:today,
+        productId:p.id,
+        rating,
+        comment
+      });
+      addHistory(clientId,"dégustation",`${p.name} ${rating ? "★".repeat(rating) : ""}${comment ? " — " + comment : ""}`.trim(),today);
+      added++;
+    }
+  });
+  if(!added) return alert("Renseigne au moins une dégustation.");
+  state.tastingDraft = {};
+  saveData();
+  render();
+}
+
+function addOrder(clientId){
+  const c = clientById(clientId);
+  const items = [];
+  document.querySelectorAll(".order-line").forEach(line => {
+    const pid = Number(line.dataset.id);
+    const qty = Number(line.querySelector("input").value || 0);
+    if(qty > 0) items.push({productId:pid, qty});
+  });
+  if(!items.length) return alert("Aucune quantité renseignée.");
+  const comment = document.getElementById("order-comment").value.trim();
+  const order = {id:Date.now(), date:today, status:"pending", comment, items};
+  c.orders.unshift(order);
+  addHistory(clientId,"commande",items.map(i => `${productById(i.productId)?.name || "Vin"} x${i.qty}`).join(", "),today);
+  saveData();
+  render();
+}
+function toggleOrderStatus(clientId, orderId){
+  const o = clientById(clientId).orders.find(x => x.id===orderId);
+  o.status = o.status==="sent" ? "pending" : "sent";
+  saveData();
+  render();
+}
+function openOrderDetail(clientId, orderId){
+  state.modal = {type:"orderDetail", clientId, orderId};
+  render();
+}
+function openOrderEditor(clientId, orderId){
+  state.modal = {type:"orderEdit", clientId, orderId};
+  render();
+}
+function saveOrderEdit(clientId, orderId){
+  const c = clientById(clientId);
+  const o = c.orders.find(x => x.id===orderId);
+  o.comment = document.getElementById("edit-order-comment").value.trim();
+  o.items = [];
+  activeProducts().forEach(p => {
+    const qty = Number(document.getElementById(`edit-order-qty-${p.id}`).value || 0);
+    if(qty > 0) o.items.push({productId:p.id, qty});
+  });
+  if(!o.items.length) return alert("La commande doit contenir au moins un produit.");
+  saveData();
+  closeModal();
+}
+
+function addClientToTour(id){
+  if(!data.tourList.find(t => t.id===Number(id))){
+    data.tourList.push({id:Number(id), time:""});
+    saveData();
+  }
+  render();
+}
+function removeFromTour(id){
+  data.tourList = data.tourList.filter(t => t.id!==Number(id));
+  saveData();
+  render();
+}
+function moveTourUp(index){
+  if(index<=0) return;
+  [data.tourList[index-1], data.tourList[index]] = [data.tourList[index], data.tourList[index-1]];
+  saveData();
+  render();
+}
+function moveTourDown(index){
+  if(index>=data.tourList.length-1) return;
+  [data.tourList[index+1], data.tourList[index]] = [data.tourList[index], data.tourList[index+1]];
+  saveData();
+  render();
+}
+function updateTourTime(index, value){
+  data.tourList[index].time = value;
+  saveData();
+}
+function saveCurrentTour(){
+  const name = document.getElementById("saved-tour-name").value.trim();
+  const date = document.getElementById("saved-tour-date").value.trim();
+  if(!name) return alert("Donne un nom à la tournée.");
+  if(!data.tourList.length) return alert("La tournée active est vide.");
+  data.savedTours.unshift({
+    id: nextSavedTourId(),
+    name,
+    date: date || "",
+    tourList: JSON.parse(JSON.stringify(data.tourList))
+  });
+  saveData();
+  render();
+}
+function loadSavedTour(savedTourId){
+  const t = data.savedTours.find(x => x.id === Number(savedTourId));
+  if(!t) return;
+  data.tourList = JSON.parse(JSON.stringify(t.tourList || []));
+  saveData();
+  render();
+}
+function deleteSavedTour(savedTourId){
+  data.savedTours = data.savedTours.filter(t => t.id !== Number(savedTourId));
+  saveData();
+  render();
+}
+function openSavedTourEdit(savedTourId){
+  state.modal = {type:"savedTourEdit", savedTourId};
+  render();
+}
+function saveSavedTourEdit(savedTourId){
+  const t = data.savedTours.find(x => x.id === Number(savedTourId));
+  if(!t) return;
+  const name = document.getElementById("edit-saved-tour-name").value.trim();
+  const date = document.getElementById("edit-saved-tour-date").value.trim();
+  if(!name) return alert("Donne un nom à la tournée.");
+  t.name = name;
+  t.date = date;
+  t.tourList = [];
+  document.querySelectorAll("[data-edit-saved-tour-client]").forEach((row, idx) => {
+    const id = Number(row.getAttribute("data-edit-saved-tour-client"));
+    const time = document.getElementById(`edit-saved-tour-time-${idx}`).value;
+    t.tourList.push({id,time});
+  });
+  saveData();
+  closeModal();
+}
+function removeClientFromSavedTour(clientId){
+  const box = document.querySelector(`[data-edit-saved-tour-client="${clientId}"]`);
+  if(box) box.remove();
+}
+
+function toggleMapSelectionMode(){
+  state.mapSelectionMode = !state.mapSelectionMode;
+  state.mapPopupClientId = null;
+  if(!state.mapSelectionMode) state.mapSelectedClientIds = [];
+  render();
+}
+function mapPinClick(clientId){
+  state.mapPopupClientId = clientId;
+  render();
+}
+function toggleMapSelectedClient(clientId){
+  if(state.mapSelectedClientIds.includes(clientId)){
+    state.mapSelectedClientIds = state.mapSelectedClientIds.filter(id => id !== clientId);
+  }else{
+    state.mapSelectedClientIds.push(clientId);
+  }
+  render();
+}
+function removeMapSelectedClient(clientId){
+  state.mapSelectedClientIds = state.mapSelectedClientIds.filter(id => id !== clientId);
+  render();
+}
+function launchTourFromMap(){
+  if(!state.mapSelectedClientIds.length) return alert("Sélectionne au moins un client.");
+  data.tourList = state.mapSelectedClientIds.map(id => ({id,time:""}));
+  state.mapSelectionMode = false;
+  state.mapSelectedClientIds = [];
+  state.mapPopupClientId = null;
+  saveData();
+  go("tour");
+}
+function closeMapPopup(){
+  state.mapPopupClientId = null;
+  render();
+}
+
+function productStats(productId){
+  const tastings = [];
+  const orders = [];
+  data.clients.forEach(c => {
+    (c.tastings||[]).forEach(t => {
+      if(t.productId===productId && inPeriod(t.date)) tastings.push({...t, clientId:c.id, clientName:c.name});
+    });
+    (c.orders||[]).forEach(o => {
+      if(!inPeriod(o.date)) return;
+      o.items.forEach(i => {
+        if(i.productId===productId) orders.push({clientId:c.id, clientName:c.name, date:o.date, status:o.status, qty:i.qty});
+      });
+    });
+  });
+  const ratings = tastings.filter(t => t.rating>0).map(t => t.rating);
+  return {
+    tastings,
+    orders,
+    avg: ratings.length ? (ratings.reduce((a,b)=>a+b,0)/ratings.length).toFixed(1) : "—"
+  };
+}
+function openProductClients(productId, mode){
+  state.modal = {type:"productRows", productId, mode};
+  render();
+}
+
+function exportJSON(){
+  const blob = new Blob([JSON.stringify(data,null,2)], {type:"application/json"});
+  downloadBlob(blob, `crm-vin-${today}.json`);
+}
+function exportClientsCSV(){
+  const rows = [["id","nom","type","tarif","statut","ville"]];
+  data.clients.forEach(c => rows.push([c.id,c.name,c.type,c.tariff,c.status,c.city]));
+  downloadBlob(new Blob([toCSV(rows)], {type:"text/csv;charset=utf-8;"}), `clients-${today}.csv`);
+}
+function exportProductsCSV(){
+  const rows = [["id","nom","millesime"]];
+  data.products.forEach(p => rows.push([p.id,p.name,p.vintage]));
+  downloadBlob(new Blob([toCSV(rows)], {type:"text/csv;charset=utf-8;"}), `produits-${today}.csv`);
+}
+function toCSV(rows){ return rows.map(r => r.map(v => `"${String(v ?? "").replace(/"/g,'""')}"`).join(";")).join("\n"); }
+function downloadBlob(blob, filename){
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+function header(title, subtitle="", back=null){
+  return `
+    <div class="header">
+      <div class="row">
+        <div>
+          <div class="title">${esc(title)}</div>
+          ${subtitle ? `<div class="subtitle">${subtitle}</div>` : ``}
+        </div>
+        ${back ? `<button class="btn soft" onclick="${back}">Retour</button>` : ``}
+      </div>
+    </div>
+  `;
+}
+
+function mapPopupHtml(){
+  if(state.mapPopupClientId == null) return "";
+  const c = clientById(state.mapPopupClientId);
+  if(!c) return "";
+  const isSelected = state.mapSelectedClientIds.includes(c.id);
+  const left = Math.min((c.mapX || 50) + 2, 70);
+  const top = Math.max((c.mapY || 50) - 18, 6);
+
+  return `
+    <div class="map-popup" style="left:${left}%; top:${top}%;">
+      <div class="name">${esc(c.name)}</div>
+      <div class="muted">${esc(c.city)} · ${esc(c.type)}</div>
+      <div class="muted" style="margin-top:4px">${esc(c.status)}</div>
+      <div class="grid2" style="margin-top:8px">
+        ${state.mapSelectionMode
+          ? `<button class="btn ${isSelected ? 'red' : 'green'}" onclick="toggleMapSelectedClient(${c.id})">${isSelected ? '−' : '+'}</button>`
+          : `<button class="btn blue" onclick="go('client',{id:${c.id}})">Fiche</button>`}
+        <button class="btn secondary" onclick="closeMapPopup()">Fermer</button>
+      </div>
+    </div>
+  `;
+}
+
+function getCalendarMatrix(year, month){
+  const first = new Date(year, month, 1);
+  const firstDay = (first.getDay() + 6) % 7;
+  const start = new Date(year, month, 1 - firstDay);
+  const cells = [];
+  for(let i=0;i<42;i++){
+    const d = new Date(start);
+    d.setDate(start.getDate() + i);
+    cells.push(d);
+  }
+  return cells;
+}
+function setCalendarMonth(offset){
+  const d = new Date(state.calendarYear, state.calendarMonth + offset, 1);
+  state.calendarYear = d.getFullYear();
+  state.calendarMonth = d.getMonth();
+  render();
+}
+function setSelectedCalendarDate(date){
+  state.selectedCalendarDate = date;
+  render();
+}
+
+function viewHome(){
+  const urgent = dueToday();
+  const pending = allOrders().filter(o => o.status==="pending").length;
+  const rdvToday = appointmentsToday();
+  return `
+    ${header("Bonjour 👋","Usage terrain")}
+    <div class="content">
+      <div class="card dark">
+        <div class="name">Tournée du jour</div>
+        <div class="muted">${data.tourList.length} étape(s)</div>
+        <div class="small" style="margin-top:8px">${rdvToday.length} rendez-vous aujourd’hui</div>
+        <div class="grid2" style="margin-top:8px">
+          <button class="btn secondary" onclick="go('tour')">Voir tournée</button>
+          <button class="btn secondary" onclick="openTourMaps()">GPS tournée</button>
+        </div>
+      </div>
+
+      ${rdvToday.length ? `
+        <div class="card">
+          <div class="name">Rendez-vous du jour</div>
+          <div class="list" style="margin-top:8px">
+            ${rdvToday.map(a => {
+              const c = clientById(a.clientId);
+              return `<div class="item" onclick="openAppointmentDetail(${a.id})"><div class="name">${esc(c?.name || "Client")}</div><div class="muted">${esc(a.time || "Heure libre")} · ${esc(c?.city || "")}</div></div>`;
+            }).join("")}
+          </div>
+        </div>
+      ` : ``}
+
+      <div class="grid3">
+        <div class="card" onclick="go('clients')"><div class="stat">${data.clients.length}</div><div class="muted">Clients</div></div>
+        <div class="card" onclick="go('relances')"><div class="stat">${urgent.length}</div><div class="muted">Relances</div></div>
+        <div class="card" onclick="go('orders')"><div class="stat">${pending}</div><div class="muted">Cmd</div></div>
+      </div>
+
+      <div class="card">
+        <div class="grid2">
+          <button class="btn" onclick="go('clientCreate')">+ Nouveau client</button>
+          <button class="btn secondary" onclick="go('stats')">Stats</button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function viewClients(){
+  const rows = filteredClients();
+  const suggestions = clientSuggestions(state.clientSearch);
+  return `
+    ${header("Clients & prospects", `${rows.length} fiche(s)`)}
+    <div class="content">
+      <button class="btn" onclick="go('clientCreate')">+ Nouveau client</button>
+      <input id="client-search" class="field" placeholder="Rechercher un client, une ville..." value="${esc(state.clientSearch)}" oninput="setClientSearch(this.value)">
+      ${suggestions.length ? `<div class="suggestions">${suggestions.map(c => `<div class="suggestion" onclick="go('client',{id:${c.id}})">${esc(c.name)} · ${esc(c.city)}</div>`).join("")}</div>` : ``}
+      <div class="list">
+        ${rows.map(c => `
+          <div class="item" onclick="go('client',{id:${c.id}})">
+            <div class="row">
+              <div>
+                <div class="name">${esc(c.name)}</div>
+                <div class="muted">${esc(c.city)} · ${esc(c.type)} · ${esc(c.tariff)}</div>
+              </div>
+              <span class="badge ${esc(c.status)}">${esc(c.status)}</span>
+            </div>
+          </div>
+        `).join("")}
+      </div>
+    </div>
+  `;
+}
+
+function viewClientCreate(){
+  return `
+    ${header("Nouveau client","Création manuelle","go('clients')")}
+    <div class="content">
+      <div class="card">
+        <input id="new-client-name" class="field" placeholder="Nom établissement *">
+        <select id="new-client-type" class="field" style="margin-top:8px"><option>Caviste</option><option>CHR</option><option>Grossiste</option></select>
+        <select id="new-client-tariff" class="field" style="margin-top:8px"><option>Caviste</option><option>CHR</option><option>Grossiste</option></select>
+        <select id="new-client-status" class="field" style="margin-top:8px"><option value="prospect">prospect</option><option value="client">client</option><option value="inactif">inactif</option></select>
+        <input id="new-client-contact" class="field" placeholder="Contact" style="margin-top:8px">
+        <input id="new-client-phone" class="field" placeholder="Téléphone" style="margin-top:8px">
+        <input id="new-client-email" class="field" placeholder="Email" style="margin-top:8px">
+        <input id="new-client-address" class="field" placeholder="Adresse" style="margin-top:8px">
+        <input id="new-client-city" class="field" placeholder="Ville" style="margin-top:8px">
+        <input id="new-client-zone" class="field" placeholder="Zone" style="margin-top:8px">
+        <textarea id="new-client-notes" class="field" style="margin-top:8px" placeholder="Notes"></textarea>
+        <button class="btn" style="margin-top:8px" onclick="createClient()">Créer la fiche</button>
+      </div>
+    </div>
+  `;
+}
+
+function viewClient(id){
+  const c = clientById(id);
+  const products = activeProducts();
+  return `
+    ${header(c.name, `${esc(c.type)} · Tarif ${esc(c.tariff)}`, "go('clients')")}
+    <div class="content">
+
+      <div class="card">
+        <div class="row">
+          <div>
+            <div class="name">${esc(c.contact || "Visite et relance client")}</div>
+            <div class="muted">${esc(c.city)} · ${esc(c.zone)}</div>
+          </div>
+          <span class="badge ${esc(c.status)}">${esc(c.status)}</span>
+        </div>
+
+        <div class="grid2" style="margin-top:10px">
+          <button class="btn" onclick="markVisited(${c.id})">Visité</button>
+          <button class="btn secondary" onclick="openVisitedPicker()">Visité le</button>
+          <button class="btn secondary" onclick="openRelanceModal(${c.id})">Relance</button>
+          <button class="btn secondary" onclick="openAppointmentCreate(${c.id})">Prévoir un rendez-vous</button>
+          <a class="btn secondary" target="_blank" href="${mapsUrl(c.address)}">📍 GPS</a>
+        </div>
+
+        <input id="visited-manual-date-hidden" type="date" value="${esc(c.lastVisit || today)}" style="position:absolute;left:-9999px;opacity:0" onchange="setVisitedManual(${c.id})">
+      </div>
+
+      <div class="card">
+        <div class="section-title">Dégustation</div>
+        ${products.map(p => {
+          const draft = state.tastingDraft[p.id] || {rating:0, comment:""};
+          return `
+            <div class="item" style="cursor:default">
+              <div class="row">
+                <div class="name">${esc(p.name)} ${esc(p.vintage)}</div>
+                <div class="stars">
+                  ${[1,2,3,4,5].map(n => `<button class="star ${draft.rating >= n ? '' : 'off'}" onclick="setTasteRating(${p.id},${n})">★</button>`).join("")}
+                </div>
+              </div>
+              <textarea id="taste-comment-${p.id}" class="field" placeholder="Commentaire" style="margin-top:8px" oninput="setTasteComment(${p.id}, this.value)">${esc(draft.comment || "")}</textarea>
+            </div>
+          `;
+        }).join("")}
+        <button class="btn" style="margin-top:8px" onclick="addTastings(${c.id})">Enregistrer les dégustations</button>
+      </div>
+
+      <div class="card">
+        <div class="section-title">Historique</div>
+        <div class="list">
+          ${(c.history||[]).length ? c.history.map(h => `
+            <div class="item" style="cursor:default">
+              <div class="name">${esc(h.type)}</div>
+              <div class="muted">${fmtDate(h.date)}</div>
+              <div class="small" style="margin-top:6px">${esc(h.text)}</div>
+            </div>
+          `).join("") : `<div class="muted">Aucun historique.</div>`}
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="section-title">Commande</div>
+        ${products.map(p => `
+          <div class="order-line" data-id="${p.id}">
+            <div>
+              <div class="name">${esc(p.name)} ${esc(p.vintage)}</div>
+              <div class="muted">${esc(p.color)}</div>
+            </div>
+            <input class="field" type="number" min="0" placeholder="0">
+          </div>
+        `).join("")}
+        <textarea id="order-comment" class="field" placeholder="Commentaire commande" style="margin-top:8px"></textarea>
+        <button class="btn" style="margin-top:8px" onclick="addOrder(${c.id})">Valider la commande</button>
+      </div>
+
+      <div class="card">
+        <div class="section-title">Commandes</div>
+        <div class="list">
+          ${(c.orders||[]).length ? c.orders.map(o => `
+            <div class="item" onclick="openOrderDetail(${c.id},${o.id})">
+              <div class="row">
+                <div>
+                  <div class="name">${fmtDate(o.date)}</div>
+                  <div class="muted">${o.status === "sent" ? "Transmise" : "Non transmise"}</div>
+                </div>
+                <button class="btn ${o.status === 'sent' ? 'blue' : 'secondary'}" onclick="event.stopPropagation(); toggleOrderStatus(${c.id},${o.id})">${o.status === "sent" ? "✅" : "⬜"}</button>
+              </div>
+              <div class="small" style="margin-top:8px">${o.items.map(i => `${esc(productById(i.productId)?.name || "Vin")} x ${i.qty}`).join("<br>")}</div>
+              <button class="btn soft" style="margin-top:8px" onclick="event.stopPropagation(); openOrderEditor(${c.id},${o.id})">✏️ Modifier</button>
+            </div>
+          `).join("") : `<div class="muted">Aucune commande.</div>`}
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="section-title">Éditer la fiche client</div>
+        <input id="edit-client-name" class="field" value="${esc(c.name)}">
+        <input id="edit-client-contact" class="field" value="${esc(c.contact)}" style="margin-top:8px">
+        <input id="edit-client-phone" class="field" value="${esc(c.phone)}" style="margin-top:8px">
+        <input id="edit-client-email" class="field" value="${esc(c.email)}" style="margin-top:8px">
+        <input id="edit-client-address" class="field" value="${esc(c.address)}" style="margin-top:8px">
+        <input id="edit-client-city" class="field" value="${esc(c.city)}" style="margin-top:8px">
+        <input id="edit-client-zone" class="field" value="${esc(c.zone)}" style="margin-top:8px">
+        <select id="edit-client-type" class="field" style="margin-top:8px">${["Caviste","CHR","Grossiste"].map(v => `<option ${c.type===v?'selected':''}>${v}</option>`).join("")}</select>
+        <select id="edit-client-tariff" class="field" style="margin-top:8px">${["Caviste","CHR","Grossiste"].map(v => `<option ${c.tariff===v?'selected':''}>${v}</option>`).join("")}</select>
+        <select id="edit-client-status" class="field" style="margin-top:8px">${["prospect","client","inactif"].map(v => `<option value="${v}" ${c.status===v?'selected':''}>${v}</option>`).join("")}</select>
+        <textarea id="edit-client-notes" class="field" style="margin-top:8px">${esc(c.notes)}</textarea>
+        <button class="btn" style="margin-top:8px" onclick="saveClientEdits(${c.id})">Enregistrer</button>
+      </div>
+
+    </div>
+  `;
+}
+
+function viewRelances(){
+  const suggestions = clientSuggestions(state.relanceSearch);
+  const todayRows = dueToday();
+  const next3 = dueNext3();
+  const later = dueLater();
+  return `
+    ${header("Relances", `${data.clients.filter(c => c.nextFollowUp).length} client(s)`)}
+    <div class="content">
+      <div class="card">
+        <div class="section-title">Ajouter relance</div>
+        <input id="relance-search" class="field" placeholder="Rechercher un client..." value="${esc(state.relanceSearch)}" oninput="setRelanceSearch(this.value)">
+        ${suggestions.length ? `<div class="suggestions">${suggestions.map(c => `
+          <div class="suggestion">
+            <div class="row">
+              <div>
+                <div class="name">${esc(c.name)}</div>
+                <div class="muted">${esc(c.city)}</div>
+              </div>
+              <input type="date" class="field" style="width:150px;padding:8px" id="relance-date-${c.id}">
+            </div>
+            <button class="btn" style="margin-top:8px" onclick="addFollowUpForClient(${c.id}, document.getElementById('relance-date-${c.id}').value)">Ajouter</button>
+          </div>
+        `).join("")}</div>` : ``}
+      </div>
+
+      <div class="card">
+        <div class="section-title">Aujourd’hui et en retard</div>
+        <div class="list">
+          ${todayRows.length ? todayRows.map(c => `<div class="item" onclick="go('client',{id:${c.id}})"><div class="name">${esc(c.name)}</div><div class="muted">${fmtDate(c.nextFollowUp)}</div></div>`).join("") : `<div class="muted">Aucune relance.</div>`}
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="section-title">3 prochains jours</div>
+        <div class="list">
+          ${next3.length ? next3.map(c => `<div class="item" onclick="go('client',{id:${c.id}})"><div class="name">${esc(c.name)}</div><div class="muted">${fmtDate(c.nextFollowUp)}</div></div>`).join("") : `<div class="muted">Aucune relance proche.</div>`}
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="section-title">Plus loin</div>
+        <div class="list">
+          ${later.length ? later.map(c => `<div class="item" onclick="go('client',{id:${c.id}})"><div class="name">${esc(c.name)}</div><div class="muted">${fmtDate(c.nextFollowUp)}</div></div>`).join("") : `<div class="muted">Aucune relance future.</div>`}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function viewOrders(){
+  const rows = filteredOrders();
+  const pending = rows.filter(o => o.status==="pending");
+  const sent = rows.filter(o => o.status==="sent");
+  return `
+    ${header("Commandes", `${rows.length} commande(s)`)}
+    <div class="content">
+      <div class="card">
+        <div class="section-title">Filtre par date</div>
+        <input class="field" type="date" value="${esc(state.ordersDate)}" onchange="setOrdersDate(this.value)">
+        <button class="btn soft" style="margin-top:8px" onclick="setOrdersDate('')">Réinitialiser</button>
+      </div>
+
+      <div class="card">
+        <div class="section-title">À transmettre</div>
+        <div class="list">
+          ${pending.length ? pending.map(o => `
+            <div class="item" onclick="openOrderDetail(${o.clientId},${o.id})">
+              <div class="row">
+                <div>
+                  <div class="name">${esc(o.clientName)}</div>
+                  <div class="muted">${fmtDate(o.date)}</div>
+                </div>
+                <button class="btn secondary" onclick="event.stopPropagation(); toggleOrderStatus(${o.clientId},${o.id})">⬜</button>
+              </div>
+              <div class="small" style="margin-top:8px">${o.items.map(i => `${esc(productById(i.productId)?.name || "Vin")} x ${i.qty}`).join("<br>")}</div>
+            </div>
+          `).join("") : `<div class="muted">Aucune commande en attente.</div>`}
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="section-title">Déjà transmises</div>
+        <div class="list">
+          ${sent.length ? sent.map(o => `
+            <div class="item" onclick="openOrderDetail(${o.clientId},${o.id})">
+              <div class="row">
+                <div>
+                  <div class="name">${esc(o.clientName)}</div>
+                  <div class="muted">${fmtDate(o.date)}</div>
+                </div>
+                <button class="btn blue" onclick="event.stopPropagation(); toggleOrderStatus(${o.clientId},${o.id})">✅</button>
+              </div>
+              <div class="small" style="margin-top:8px">${o.items.map(i => `${esc(productById(i.productId)?.name || "Vin")} x ${i.qty}`).join("<br>")}</div>
+            </div>
+          `).join("") : `<div class="muted">Aucune commande transmise.</div>`}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function viewProducts(){
+  return `
+    ${header("Produits / vins", `${data.products.length} fiche(s)`)}
+    <div class="content">
+      <div class="periods">
+        <button class="btn ${state.period==='1m'?'':'secondary'}" onclick="setPeriod('1m')">1m</button>
+        <button class="btn ${state.period==='3m'?'':'secondary'}" onclick="setPeriod('3m')">3m</button>
+        <button class="btn ${state.period==='6m'?'':'secondary'}" onclick="setPeriod('6m')">6m</button>
+        <button class="btn ${state.period==='1y'?'':'secondary'}" onclick="setPeriod('1y')">1a</button>
+        <button class="btn ${state.period==='manual'?'':'secondary'}" onclick="setPeriod('manual')">manuel</button>
+      </div>
+
+      ${state.period === "manual" ? `
+        <div class="card">
+          <div class="section-title">Période manuelle</div>
+          <input class="field" type="date" value="${esc(state.manualStart)}" onchange="setManualStart(this.value)">
+          <input class="field" type="date" value="${esc(state.manualEnd)}" style="margin-top:8px" onchange="setManualEnd(this.value)">
+        </div>
+      ` : ``}
+
+      <div class="list">
+        ${data.products.map(p => {
+          const s = productStats(p.id);
+          const ordered = s.orders.reduce((sum,x)=>sum+x.qty,0);
+          return `
+            <div class="item" onclick="go('product',{id:${p.id}})">
+              <div class="row">
+                <div>
+                  <div class="name">${esc(p.name)} ${esc(p.vintage)}</div>
+                  <div class="muted">${esc(p.color)}</div>
+                </div>
+                <span class="badge activeWine">actif</span>
+              </div>
+              <div class="small" style="margin-top:8px">${s.tastings.length} dégustation(s) · ${ordered} bt commandées</div>
+            </div>
+          `;
+        }).join("")}
+      </div>
+    </div>
+  `;
+}
+
+function viewProduct(id){
+  const p = productById(id);
+  const s = productStats(id);
+  return `
+    ${header(`${p.name} ${p.vintage}`, `période ${esc(state.period)}`, "go('products')")}
+    <div class="content">
+      <div class="periods">
+        <button class="btn ${state.period==='1m'?'':'secondary'}" onclick="setPeriod('1m')">1m</button>
+        <button class="btn ${state.period==='3m'?'':'secondary'}" onclick="setPeriod('3m')">3m</button>
+        <button class="btn ${state.period==='6m'?'':'secondary'}" onclick="setPeriod('6m')">6m</button>
+        <button class="btn ${state.period==='1y'?'':'secondary'}" onclick="setPeriod('1y')">1a</button>
+        <button class="btn ${state.period==='manual'?'':'secondary'}" onclick="setPeriod('manual')">manuel</button>
+      </div>
+
+      ${state.period === "manual" ? `
+        <div class="card">
+          <div class="section-title">Période manuelle</div>
+          <input class="field" type="date" value="${esc(state.manualStart)}" onchange="setManualStart(this.value)">
+          <input class="field" type="date" value="${esc(state.manualEnd)}" style="margin-top:8px" onchange="setManualEnd(this.value)">
+        </div>
+      ` : ``}
+
+      <div class="stats-grid">
+        <div class="stats-card" onclick="openProductClients(${p.id},'tastings')">
+          <div class="stat">${s.tastings.length}</div>
+          <div class="muted">Dégustations</div>
+        </div>
+        <div class="stats-card" onclick="openProductClients(${p.id},'orders')">
+          <div class="stat">${s.orders.reduce((sum,x)=>sum+x.qty,0)}</div>
+          <div class="muted">Bt commandées</div>
+        </div>
+        <div class="stats-card">
+          <div class="stat">${s.avg}</div>
+          <div class="muted">Note moy.</div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function viewMap(){
+  return `
+    ${header("Carte clients", state.mapSelectionMode ? "Mode sélection tournée" : "Cliquer sur un point pour voir le client")}
+    <div class="content">
+      <div class="card">
+        <div class="grid2">
+          <button class="btn ${state.mapSelectionMode ? 'blue' : ''}" onclick="toggleMapSelectionMode()">${state.mapSelectionMode ? "Annuler la sélection" : "Créer tournée via la carte"}</button>
+          ${state.mapSelectionMode ? `<button class="btn" onclick="launchTourFromMap()">Lancer la tournée</button>` : `<button class="btn secondary" onclick="go('tour')">Voir la tournée</button>`}
+        </div>
+
+        <div class="mapbox" style="margin-top:10px">
+          <div class="mapgrid"></div>
+          ${data.clients.map(c => `
+            <button
+              class="pin ${esc(c.status)} ${state.mapSelectedClientIds.includes(c.id) ? 'selected' : ''}"
+              style="left:${c.mapX || 50}%; top:${c.mapY || 50}%"
+              onclick="mapPinClick(${c.id})"
+              title="${esc(c.name)}"
+            ></button>
+          `).join("")}
+          ${mapPopupHtml()}
+        </div>
+
+        <div class="map-legend">
+          <div class="legend-item"><span class="legend-dot" style="background:#22c55e"></span> client</div>
+          <div class="legend-item"><span class="legend-dot" style="background:#f59e0b"></span> prospect</div>
+          <div class="legend-item"><span class="legend-dot" style="background:#9ca3af"></span> inactif</div>
+        </div>
+      </div>
+
+      ${state.mapSelectionMode ? `
+        <div class="card">
+          <div class="section-title">Clients sélectionnés</div>
+          <div class="list">
+            ${state.mapSelectedClientIds.length ? state.mapSelectedClientIds.map(id => {
+              const c = clientById(id);
+              return `
+                <div class="item">
+                  <div class="row">
+                    <div>
+                      <div class="name">${esc(c.name)}</div>
+                      <div class="muted">${esc(c.city)}</div>
+                    </div>
+                    <button class="btn red" onclick="removeMapSelectedClient(${c.id})">Retirer</button>
+                  </div>
+                </div>
+              `;
+            }).join("") : `<div class="muted">Aucun client sélectionné.</div>`}
+          </div>
+        </div>
+      ` : ``}
+    </div>
+  `;
+}
+
+function viewTour(){
+  return `
+    ${header("Tournée du jour", `${data.tourList.length} étape(s)`)}
+    <div class="content">
+      <div class="card dark">
+        <div class="name">Tournée</div>
+        <div class="grid2" style="margin-top:8px">
+          <button class="btn secondary" onclick="openTourMaps()">GPS tournée</button>
+          <button class="btn secondary" onclick="go('map')">Carte</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="section-title">Enregistrer la tournée</div>
+        <input id="saved-tour-name" class="field" placeholder="Nom de la tournée">
+        <input id="saved-tour-date" class="field" type="date" style="margin-top:8px">
+        <button class="btn" style="margin-top:8px" onclick="saveCurrentTour()">Enregistrer la tournée</button>
+      </div>
+
+      <div class="card">
+        <div class="section-title">Ajouter à la tournée</div>
+        <input id="tour-search" class="field" placeholder="Rechercher un client..." value="${esc(state.tourSearch)}" oninput="setTourSearch(this.value)">
+        ${tourCandidates().length ? `<div class="suggestions">${tourCandidates().slice(0,6).map(c => `<div class="suggestion" onclick="addClientToTour(${c.id})">${esc(c.name)} · ${esc(c.city)}</div>`).join("")}</div>` : ``}
+      </div>
+
+      <div class="list">
+        ${data.tourList.map((t,i) => {
+          const c = clientById(t.id);
+          return `
+            <div class="card">
+              <div class="row">
+                <div>
+                  <div class="name">${i+1}. ${esc(c.name)}</div>
+                  <div class="muted">${esc(c.city)}</div>
+                </div>
+                <input class="field" style="width:90px" value="${esc(t.time || '')}" placeholder="heure" onchange="updateTourTime(${i}, this.value)">
+              </div>
+              <div class="grid2" style="margin-top:8px">
+                <button class="btn secondary" onclick="moveTourUp(${i})">⬆️</button>
+                <button class="btn secondary" onclick="moveTourDown(${i})">⬇️</button>
+                <button class="btn soft" onclick="go('client',{id:${c.id}})">Fiche</button>
+                <button class="btn secondary" onclick="window.open('${mapsUrl(c.address)}','_blank')">📍 Client</button>
+                <button class="btn red" onclick="removeFromTour(${c.id})">Supprimer</button>
+              </div>
+            </div>
+          `;
+        }).join("")}
+        ${!data.tourList.length ? `<div class="muted">Aucune tournée active.</div>` : ``}
+      </div>
+
+      <div class="card">
+        <div class="section-title">Tournées enregistrées</div>
+        <div class="list">
+          ${(data.savedTours||[]).length ? data.savedTours.map(t => `
+            <div class="item">
+              <div class="row">
+                <div>
+                  <div class="name">${esc(t.name)}</div>
+                  <div class="muted">${t.date ? fmtDate(t.date) : "Sans date"} · ${(t.tourList || []).length} étape(s)</div>
+                </div>
+              </div>
+              <div class="grid2" style="margin-top:8px">
+                <button class="btn blue" onclick="loadSavedTour(${t.id})">Charger</button>
+                <button class="btn secondary" onclick="openSavedTourEdit(${t.id})">Modifier</button>
+                <button class="btn red" onclick="deleteSavedTour(${t.id})">Supprimer</button>
+              </div>
+            </div>
+          `).join("") : `<div class="muted">Aucune tournée enregistrée.</div>`}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function viewAppointments(){
+  const todayList = appointmentsToday();
+  const futureList = appointmentsUpcoming();
+  const monthLabel = new Date(state.calendarYear, state.calendarMonth, 1).toLocaleDateString("fr-FR", {month:"long", year:"numeric"});
+  const cells = getCalendarMatrix(state.calendarYear, state.calendarMonth);
+  const days = ["Lun","Mar","Mer","Jeu","Ven","Sam","Dim"];
+  const selectedList = appointmentsForDate(state.selectedCalendarDate);
+
+  return `
+    ${header("Rendez-vous", state.rdvView === "list" ? "Vue liste" : "Vue calendrier")}
+    <div class="content">
+      <div class="grid2">
+        <button class="btn ${state.rdvView === 'list' ? '' : 'secondary'}" onclick="setRdvView('list')">Liste</button>
+        <button class="btn ${state.rdvView === 'calendar' ? '' : 'secondary'}" onclick="setRdvView('calendar')">Calendrier</button>
+      </div>
+
+      ${state.rdvView === "list" ? `
+        <div class="card">
+          <div class="section-title">Aujourd’hui</div>
+          <div class="list">
+            ${todayList.length ? todayList.map(a => {
+              const c = clientById(a.clientId);
+              return `<div class="item" onclick="openAppointmentDetail(${a.id})"><div class="name">${esc(c?.name || "Client")}</div><div class="muted">${esc(a.time || "Heure libre")} · ${esc(c?.city || "")}</div></div>`;
+            }).join("") : `<div class="muted">Aucun rendez-vous aujourd’hui.</div>`}
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="section-title">À venir</div>
+          <div class="list">
+            ${futureList.length ? futureList.map(a => {
+              const c = clientById(a.clientId);
+              return `<div class="item" onclick="openAppointmentDetail(${a.id})"><div class="name">${esc(c?.name || "Client")}</div><div class="muted">${fmtDate(a.date)} · ${esc(a.time || "Heure libre")} · ${esc(c?.city || "")}</div></div>`;
+            }).join("") : `<div class="muted">Aucun rendez-vous à venir.</div>`}
+          </div>
+        </div>
+      ` : `
+        <div class="card">
+          <div class="row">
+            <button class="btn secondary" onclick="setCalendarMonth(-1)">◀</button>
+            <div class="name">${esc(monthLabel)}</div>
+            <button class="btn secondary" onclick="setCalendarMonth(1)">▶</button>
+          </div>
+          <div class="calendar-head" style="margin-top:10px">
+            ${days.map(d => `<div>${d}</div>`).join("")}
+          </div>
+          <div class="calendar-grid">
+            ${cells.map(d => {
+              const dateStr = d.toISOString().slice(0,10);
+              const inMonth = d.getMonth() === state.calendarMonth;
+              const count = appointmentsForDate(dateStr).length;
+              return `
+                <div class="calendar-cell ${inMonth ? '' : 'out'} ${state.selectedCalendarDate === dateStr ? 'active' : ''}" onclick="setSelectedCalendarDate('${dateStr}')">
+                  <div class="calendar-num">${d.getDate()}</div>
+                  ${count ? `<div class="rdv-dot"></div><div class="muted">${count} rdv</div>` : ``}
+                </div>
+              `;
+            }).join("")}
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="section-title">Rendez-vous du ${fmtDate(state.selectedCalendarDate)}</div>
+          <div class="list">
+            ${selectedList.length ? selectedList.map(a => {
+              const c = clientById(a.clientId);
+              return `<div class="item" onclick="openAppointmentDetail(${a.id})"><div class="name">${esc(c?.name || "Client")}</div><div class="muted">${esc(a.time || "Heure libre")} · ${esc(c?.city || "")}</div></div>`;
+            }).join("") : `<div class="muted">Aucun rendez-vous ce jour-là.</div>`}
+          </div>
+        </div>
+      `}
+    </div>
+  `;
+}
+
+function viewStats(){
+  const totalClients = data.clients.length;
+  const activeClients = data.clients.filter(c => c.status==="client").length;
+  const prospects = data.clients.filter(c => c.status==="prospect").length;
+  const pending = allOrders().filter(o => o.status==="pending").length;
+  const sent = allOrders().filter(o => o.status==="sent").length;
+  const tastingsCount = data.clients.reduce((sum,c) => sum + (c.tastings||[]).filter(t => inPeriod(t.date)).length, 0);
+
+  const tasteCount = {};
+  const orderCount = {};
+  data.clients.forEach(c => {
+    (c.tastings||[]).forEach(t => { if(inPeriod(t.date)) tasteCount[t.productId] = (tasteCount[t.productId] || 0) + 1; });
+    (c.orders||[]).forEach(o => {
+      if(!inPeriod(o.date)) return;
+      o.items.forEach(i => { orderCount[i.productId] = (orderCount[i.productId] || 0) + i.qty; });
+    });
+  });
+
+  const topTasted = Object.entries(tasteCount).sort((a,b)=>b[1]-a[1]).slice(0,5);
+  const topOrdered = Object.entries(orderCount).sort((a,b)=>b[1]-a[1]).slice(0,5);
+
+  return `
+    ${header("Stats", `période ${esc(state.period)}`)}
+    <div class="content">
+      <div class="periods">
+        <button class="btn ${state.period==='1m'?'':'secondary'}" onclick="setPeriod('1m')">1m</button>
+        <button class="btn ${state.period==='3m'?'':'secondary'}" onclick="setPeriod('3m')">3m</button>
+        <button class="btn ${state.period==='6m'?'':'secondary'}" onclick="setPeriod('6m')">6m</button>
+        <button class="btn ${state.period==='1y'?'':'secondary'}" onclick="setPeriod('1y')">1a</button>
+        <button class="btn ${state.period==='manual'?'':'secondary'}" onclick="setPeriod('manual')">manuel</button>
+      </div>
+
+      ${state.period === "manual" ? `
+        <div class="card">
+          <div class="section-title">Période manuelle</div>
+          <input class="field" type="date" value="${esc(state.manualStart)}" onchange="setManualStart(this.value)">
+          <input class="field" type="date" value="${esc(state.manualEnd)}" style="margin-top:8px" onchange="setManualEnd(this.value)">
+        </div>
+      ` : ``}
+
+      <div class="stats-grid">
+        <div class="stats-card"><div class="stat">${totalClients}</div><div class="muted">Clients total</div></div>
+        <div class="stats-card"><div class="stat">${activeClients}</div><div class="muted">Clients actifs</div></div>
+        <div class="stats-card"><div class="stat">${prospects}</div><div class="muted">Prospects</div></div>
+        <div class="stats-card"><div class="stat">${dueToday().length}</div><div class="muted">Relances urgentes</div></div>
+        <div class="stats-card"><div class="stat">${pending}</div><div class="muted">Cmd en attente</div></div>
+        <div class="stats-card"><div class="stat">${sent}</div><div class="muted">Cmd transmises</div></div>
+        <div class="stats-card"><div class="stat">${tastingsCount}</div><div class="muted">Dégustations</div></div>
+      </div>
+
+      <div class="card">
+        <div class="section-title">Vins les plus dégustés</div>
+        <div class="list">
+          ${topTasted.length ? topTasted.map(([id,count]) => `<div class="item" onclick="openProductClients(${id},'tastings')">${esc(productById(id)?.name || 'Vin')} · ${count}</div>`).join("") : `<div class="muted">Aucune donnée.</div>`}
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="section-title">Vins les plus commandés</div>
+        <div class="list">
+          ${topOrdered.length ? topOrdered.map(([id,count]) => `<div class="item" onclick="openProductClients(${id},'orders')">${esc(productById(id)?.name || 'Vin')} · ${count} bt</div>`).join("") : `<div class="muted">Aucune donnée.</div>`}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function renderModal(){
+  if(!state.modal) return "";
+  if(state.modal.type==="orderDetail"){
+    const c = clientById(state.modal.clientId);
+    const o = c.orders.find(x => x.id===state.modal.orderId);
+    return `
+      <div class="modal-backdrop" onclick="closeModal()">
+        <div class="modal" onclick="event.stopPropagation()">
+          <div class="row">
+            <div>
+              <div class="name">${esc(c.name)}</div>
+              <div class="muted">${fmtDate(o.date)}</div>
+            </div>
+            <button class="btn soft" onclick="closeModal()">Fermer</button>
+          </div>
+          <div class="item" style="margin-top:10px;cursor:default">
+            <div class="small">${o.items.map(i => `${esc(productById(i.productId)?.name || "Vin")} x ${i.qty}`).join("<br>")}</div>
+            ${o.comment ? `<div class="muted" style="margin-top:8px">${esc(o.comment)}</div>` : ``}
+            <div class="grid2" style="margin-top:8px">
+              <button class="btn ${o.status==='sent'?'blue':'secondary'}" onclick="toggleOrderStatus(${c.id},${o.id})">${o.status==='sent'?'✅ Transmise':'⬜ Non transmise'}</button>
+              <button class="btn soft" onclick="openOrderEditor(${c.id},${o.id})">✏️ Modifier</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  if(state.modal.type==="orderEdit"){
+    const c = clientById(state.modal.clientId);
+    const o = c.orders.find(x => x.id===state.modal.orderId);
+    const byProduct = {};
+    (o.items||[]).forEach(i => byProduct[i.productId] = i.qty);
+    return `
+      <div class="modal-backdrop" onclick="closeModal()">
+        <div class="modal" onclick="event.stopPropagation()">
+          <div class="row">
+            <div><div class="name">Modifier la commande</div><div class="muted">${esc(c.name)} · ${fmtDate(o.date)}</div></div>
+            <button class="btn soft" onclick="closeModal()">Fermer</button>
+          </div>
+          ${activeProducts().map(p => `
+            <div class="order-line" style="margin-top:10px">
+              <div>
+                <div class="name">${esc(p.name)} ${esc(p.vintage)}</div>
+                <div class="muted">${esc(p.color)}</div>
+              </div>
+              <input id="edit-order-qty-${p.id}" class="field" type="number" min="0" value="${byProduct[p.id] || 0}">
+            </div>
+          `).join("")}
+          <textarea id="edit-order-comment" class="field" style="margin-top:10px" placeholder="Commentaire">${esc(o.comment || "")}</textarea>
+          <button class="btn" style="margin-top:10px" onclick="saveOrderEdit(${c.id},${o.id})">Enregistrer la commande</button>
+        </div>
+      </div>
+    `;
+  }
+
+  if(state.modal.type==="productRows"){
+    const p = productById(state.modal.productId);
+    const s = productStats(p.id);
+    const rows = state.modal.mode==="tastings"
+      ? s.tastings.map(t => ({clientId:t.clientId,title:t.clientName,line1:`${fmtDate(t.date)} · ${t.rating ? "★".repeat(t.rating) : "Sans note"}`,line2:t.comment || ""}))
+      : s.orders.map(o => ({clientId:o.clientId,title:o.clientName,line1:`${fmtDate(o.date)} · ${o.qty} bt · ${o.status === 'sent' ? 'transmise' : 'non transmise'}`,line2:""}));
+    return `
+      <div class="modal-backdrop" onclick="closeModal()">
+        <div class="modal" onclick="event.stopPropagation()">
+          <div class="row">
+            <div><div class="name">${esc(p.name)} ${esc(p.vintage)}</div></div>
+            <button class="btn soft" onclick="closeModal()">Fermer</button>
+          </div>
+          <div class="list" style="margin-top:10px">
+            ${rows.length ? rows.map(r => `
+              <div class="item" onclick="closeModal(); go('client',{id:${r.clientId}})">
+                <div class="name">${esc(r.title)}</div>
+                <div class="muted">${esc(r.line1)}</div>
+                ${r.line2 ? `<div class="small" style="margin-top:6px">${esc(r.line2)}</div>` : ``}
+              </div>
+            `).join("") : `<div class="muted">Aucun résultat.</div>`}
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  if(state.modal.type==="relanceChooser"){
+    const c = clientById(state.modal.clientId);
+    return `
+      <div class="modal-backdrop" onclick="closeModal()">
+        <div class="modal" onclick="event.stopPropagation()">
+          <div class="row">
+            <div><div class="name">Relance</div><div class="muted">${esc(c.name)}</div></div>
+            <button class="btn soft" onclick="closeModal()">Fermer</button>
+          </div>
+          <div class="grid2" style="margin-top:10px">
+            <button class="btn secondary" onclick="applyRelance(${c.id},7)">+ 7 jours</button>
+            <button class="btn secondary" onclick="applyRelance(${c.id},14)">+ 14 jours</button>
+            <button class="btn secondary" onclick="applyRelance(${c.id},30)">+ 1 mois</button>
+          </div>
+          <input id="relance-manual-date" class="field" type="date" style="margin-top:10px">
+          <button class="btn" style="margin-top:10px" onclick="applyRelanceManual(${c.id})">Date manuelle</button>
+        </div>
+      </div>
+    `;
+  }
+
+  if(state.modal.type==="savedTourEdit"){
+    const t = data.savedTours.find(x => x.id === Number(state.modal.savedTourId));
+    if(!t) return "";
+    return `
+      <div class="modal-backdrop" onclick="closeModal()">
+        <div class="modal" onclick="event.stopPropagation()">
+          <div class="row">
+            <div><div class="name">Modifier la tournée</div><div class="muted">${esc(t.name)}</div></div>
+            <button class="btn soft" onclick="closeModal()">Fermer</button>
+          </div>
+          <input id="edit-saved-tour-name" class="field" value="${esc(t.name)}" style="margin-top:10px">
+          <input id="edit-saved-tour-date" class="field" type="date" value="${esc(t.date || "")}" style="margin-top:10px">
+          <div class="list" style="margin-top:10px">
+            ${(t.tourList || []).map((step, idx) => {
+              const c = clientById(step.id);
+              return `
+                <div class="item" data-edit-saved-tour-client="${step.id}">
+                  <div class="row">
+                    <div>
+                      <div class="name">${esc(c?.name || "Client")}</div>
+                      <div class="muted">${esc(c?.city || "")}</div>
+                    </div>
+                    <input id="edit-saved-tour-time-${idx}" class="field" style="width:90px" value="${esc(step.time || "")}" placeholder="heure">
+                  </div>
+                  <button class="btn red" style="margin-top:8px" onclick="removeClientFromSavedTour(${step.id})">Retirer</button>
+                </div>
+              `;
+            }).join("")}
+          </div>
+          <button class="btn" style="margin-top:10px" onclick="saveSavedTourEdit(${t.id})">Enregistrer les modifications</button>
+        </div>
+      </div>
+    `;
+  }
+
+  if(state.modal.type==="appointmentCreate"){
+    const c = clientById(state.modal.clientId);
+    return `
+      <div class="modal-backdrop" onclick="closeModal()">
+        <div class="modal" onclick="event.stopPropagation()">
+          <div class="row">
+            <div><div class="name">Prévoir un rendez-vous</div><div class="muted">${esc(c.name)}</div></div>
+            <button class="btn soft" onclick="closeModal()">Fermer</button>
+          </div>
+          <input id="appointment-date" class="field" type="date" style="margin-top:10px">
+          <input id="appointment-time" class="field" type="time" style="margin-top:10px">
+          <textarea id="appointment-note" class="field" style="margin-top:10px" placeholder="Note"></textarea>
+          <button class="btn" style="margin-top:10px" onclick="createAppointment(${c.id})">Créer le rendez-vous</button>
+        </div>
+      </div>
+    `;
+  }
+
+  if(state.modal.type==="appointmentDetail"){
+    const a = appointmentById(state.modal.appointmentId);
+    if(!a) return "";
+    const c = clientById(a.clientId);
+    return `
+      <div class="modal-backdrop" onclick="closeModal()">
+        <div class="modal" onclick="event.stopPropagation()">
+          <div class="row">
+            <div>
+              <div class="name">${esc(c?.name || "Client")}</div>
+              <div class="muted">${fmtDate(a.date)} · ${esc(a.time || "Heure libre")}</div>
+            </div>
+            <button class="btn soft" onclick="closeModal()">Fermer</button>
+          </div>
+          <div class="item" style="margin-top:10px;cursor:default">
+            <div class="muted">${esc(c?.city || "")}</div>
+            ${a.note ? `<div class="small" style="margin-top:8px">${esc(a.note)}</div>` : ``}
+            <div class="grid2" style="margin-top:10px">
+              <button class="btn blue" onclick="go('client',{id:${c.id}}); closeModal()">Fiche</button>
+              <button class="btn secondary" onclick="openAppointmentEdit(${a.id})">Modifier</button>
+              <button class="btn red" onclick="deleteAppointment(${a.id})">Annuler</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  if(state.modal.type==="appointmentEdit"){
+    const a = appointmentById(state.modal.appointmentId);
+    if(!a) return "";
+    const c = clientById(a.clientId);
+    return `
+      <div class="modal-backdrop" onclick="closeModal()">
+        <div class="modal" onclick="event.stopPropagation()">
+          <div class="row">
+            <div><div class="name">Modifier le rendez-vous</div><div class="muted">${esc(c?.name || "Client")}</div></div>
+            <button class="btn soft" onclick="closeModal()">Fermer</button>
+          </div>
+          <input id="edit-appointment-date" class="field" type="date" value="${esc(a.date)}" style="margin-top:10px">
+          <input id="edit-appointment-time" class="field" type="time" value="${esc(a.time || "")}" style="margin-top:10px">
+          <textarea id="edit-appointment-note" class="field" style="margin-top:10px" placeholder="Note">${esc(a.note || "")}</textarea>
+          <button class="btn" style="margin-top:10px" onclick="saveAppointmentEdit(${a.id})">Enregistrer</button>
+        </div>
+      </div>
+    `;
+  }
+
+  return "";
+}
+
+function renderNav(){
+  const current =
+    state.screen==="client" ? "clients" :
+    state.screen==="clientCreate" ? "clients" :
+    state.screen==="product" ? "products" :
+    state.screen;
+
+  const tabs = [
+    ["home","Accueil"],
+    ["clients","Clients"],
+    ["relances","Relances"],
+    ["appointments","RDV"],
+    ["products","Vins"],
+    ["map","Carte"],
+    ["tour","Tournée"],
+    ["stats","Stats"]
+  ];
+
+  return `
+    <div class="nav">
+      <div class="nav-inner">
+        ${tabs.map(([key,label]) => `<button class="tab ${current===key?'active':''}" onclick="go('${key}')">${label}</button>`).join("")}
+      </div>
+    </div>
+  `;
+}
+
+function render(){
+  let html = "";
+  if(state.screen==="home") html = viewHome();
+  if(state.screen==="clients") html = viewClients();
+  if(state.screen==="clientCreate") html = viewClientCreate();
+  if(state.screen==="client") html = viewClient(state.params.id);
+  if(state.screen==="relances") html = viewRelances();
+  if(state.screen==="appointments") html = viewAppointments();
+  if(state.screen==="orders") html = viewOrders();
+  if(state.screen==="products") html = viewProducts();
+  if(state.screen==="product") html = viewProduct(state.params.id);
+  if(state.screen==="map") html = viewMap();
+  if(state.screen==="tour") html = viewTour();
+  if(state.screen==="stats") html = viewStats();
+
+  const root = document.getElementById("app");
+  const active = document.activeElement;
+  const activeId = active && active.id ? active.id : null;
+  const activeValue = active && "value" in active ? active.value : null;
+  const selStart = active && typeof active.selectionStart === "number" ? active.selectionStart : null;
+  const selEnd = active && typeof active.selectionEnd === "number" ? active.selectionEnd : null;
+
+  root.innerHTML = html + renderNav() + renderModal();
+
+  if(activeId){
+    const el = document.getElementById(activeId);
+    if(el){
+      el.focus();
+      if(activeValue !== null) el.value = activeValue;
+      if(selStart !== null && selEnd !== null && typeof el.setSelectionRange === "function"){
+        try{ el.setSelectionRange(selStart, selEnd); }catch(e){}
+      }
+    }
+  }
+}
+
+function setClientSearch(v){ state.clientSearch = v; render(); }
+function setRelanceSearch(v){ state.relanceSearch = v; render(); }
+function setTourSearch(v){ state.tourSearch = v; render(); }
+function setOrdersDate(v){ state.ordersDate = v; render(); }
+function setPeriod(v){ state.period = v; render(); }
+function setManualStart(v){ state.manualStart = v; render(); }
+function setManualEnd(v){ state.manualEnd = v; render(); }
+function setRdvView(v){ state.rdvView = v; render(); }
+function closeModal(){ state.modal = null; render(); }
+
+window.go = go;
+window.setClientSearch = setClientSearch;
+window.setRelanceSearch = setRelanceSearch;
+window.setTourSearch = setTourSearch;
+window.setOrdersDate = setOrdersDate;
+window.setPeriod = setPeriod;
+window.setManualStart = setManualStart;
+window.setManualEnd = setManualEnd;
+window.setRdvView = setRdvView;
+window.setCalendarMonth = setCalendarMonth;
+window.setSelectedCalendarDate = setSelectedCalendarDate;
+
+window.createClient = createClient;
+window.saveClientEdits = saveClientEdits;
+window.markVisited = markVisited;
+window.openVisitedPicker = openVisitedPicker;
+window.setVisitedManual = setVisitedManual;
+
+window.openRelanceModal = openRelanceModal;
+window.applyRelance = applyRelance;
+window.applyRelanceManual = applyRelanceManual;
+window.addFollowUpForClient = addFollowUpForClient;
+
+window.openAppointmentCreate = openAppointmentCreate;
+window.createAppointment = createAppointment;
+window.openAppointmentDetail = openAppointmentDetail;
+window.openAppointmentEdit = openAppointmentEdit;
+window.saveAppointmentEdit = saveAppointmentEdit;
+window.deleteAppointment = deleteAppointment;
+
+window.setTasteRating = setTasteRating;
+window.setTasteComment = setTasteComment;
+window.addTastings = addTastings;
+
+window.addOrder = addOrder;
+window.toggleOrderStatus = toggleOrderStatus;
+window.openOrderDetail = openOrderDetail;
+window.openOrderEditor = openOrderEditor;
+window.saveOrderEdit = saveOrderEdit;
+
+window.addClientToTour = addClientToTour;
+window.removeFromTour = removeFromTour;
+window.moveTourUp = moveTourUp;
+window.moveTourDown = moveTourDown;
+window.updateTourTime = updateTourTime;
+window.saveCurrentTour = saveCurrentTour;
+window.loadSavedTour = loadSavedTour;
+window.deleteSavedTour = deleteSavedTour;
+window.openSavedTourEdit = openSavedTourEdit;
+window.saveSavedTourEdit = saveSavedTourEdit;
+window.removeClientFromSavedTour = removeClientFromSavedTour;
+
+window.openTourMaps = openTourMaps;
+window.toggleMapSelectionMode = toggleMapSelectionMode;
+window.mapPinClick = mapPinClick;
+window.toggleMapSelectedClient = toggleMapSelectedClient;
+window.removeMapSelectedClient = removeMapSelectedClient;
+window.launchTourFromMap = launchTourFromMap;
+window.closeMapPopup = closeMapPopup;
+
+window.openProductClients = openProductClients;
+window.exportJSON = exportJSON;
+window.exportClientsCSV = exportClientsCSV;
+window.exportProductsCSV = exportProductsCSV;
+window.closeModal = closeModal;
+
+render();
+</script>
+</body>
+</html>
