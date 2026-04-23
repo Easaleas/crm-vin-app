@@ -9,24 +9,29 @@
     :root{
       --bg:#f5f5f5; --card:#ffffff; --text:#111111; --muted:#6b7280;
       --border:#e5e7eb; --accent:#111111; --ok:#16a34a; --warn:#d97706; --soft:#f3f4f6;
+      --danger:#dc2626; --info:#2563eb;
     }
     *{box-sizing:border-box}
     body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:var(--text)}
-    .app{max-width:430px;margin:0 auto;min-height:100vh;background:var(--bg);padding-bottom:84px}
+    .app{max-width:430px;margin:0 auto;min-height:100vh;background:var(--bg);padding-bottom:88px}
     .header{position:sticky;top:0;background:#fff;border-bottom:1px solid var(--border);padding:16px;z-index:10}
     .title{font-size:22px;font-weight:700;margin:0}
     .subtitle{font-size:12px;color:var(--muted);margin-top:4px}
     .content{padding:16px;display:flex;flex-direction:column;gap:16px}
     .card{background:var(--card);border:1px solid var(--border);border-radius:22px;padding:16px}
     .dark{background:#111;color:#fff;border-color:#111}
-    .dark .subtitle{color:#d1d5db}
-    .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+    .dark .subtitle,.dark .muted{color:#d1d5db}
     .grid2{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
-    .stat{font-size:28px;font-weight:700}
+    .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+    .stat{font-size:26px;font-weight:700}
     .muted{color:var(--muted);font-size:12px}
-    .btn{border:none;border-radius:16px;padding:12px 14px;font-weight:600;cursor:pointer;background:#111;color:#fff}
+    .btn{border:none;border-radius:16px;padding:12px 14px;font-weight:600;cursor:pointer;background:#111;color:#fff;text-decoration:none;text-align:center;display:inline-block}
     .btn.secondary{background:#fff;color:#111;border:1px solid var(--border)}
     .btn.soft{background:var(--soft);color:#111}
+    .btn.warn{background:#fff7ed;color:#9a3412;border:1px solid #fdba74}
+    .btn.danger{background:#fef2f2;color:#b91c1c;border:1px solid #fecaca}
+    .btn.info{background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe}
+    .btn.full{width:100%}
     .row{display:flex;align-items:center;justify-content:space-between;gap:12px}
     .list{display:flex;flex-direction:column;gap:10px}
     .item{background:#fff;border:1px solid var(--border);border-radius:18px;padding:14px;cursor:pointer}
@@ -36,6 +41,8 @@
     .client{background:#dcfce7;color:#166534}
     .prospect{background:#fef3c7;color:#92400e}
     .inactive{background:#e5e7eb;color:#374151}
+    .activeWine{background:#ecfccb;color:#3f6212}
+    .archivedWine{background:#f3f4f6;color:#4b5563}
     .section-title{font-size:16px;font-weight:700;margin:0 0 10px}
     .actions{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
     .field{width:100%;padding:12px 14px;border-radius:16px;border:1px solid var(--border);background:#fff;font:inherit}
@@ -43,144 +50,289 @@
     .timeline{display:flex;flex-direction:column;gap:12px}
     .timeline-item{display:flex;gap:10px}
     .dot{width:10px;height:10px;border-radius:50%;background:#111;margin-top:5px;flex:0 0 auto}
-    .mapbox{height:420px;border-radius:22px;background:linear-gradient(135deg,#d1d5db,#e5e7eb);position:relative;overflow:hidden;border:1px solid var(--border)}
+    .mapbox{height:360px;border-radius:22px;background:linear-gradient(135deg,#d1d5db,#e5e7eb);position:relative;overflow:hidden;border:1px solid var(--border)}
     .pin{position:absolute;width:18px;height:18px;border-radius:50%;border:4px solid #fff;box-shadow:0 4px 10px rgba(0,0,0,.15)}
     .pin.client{background:#22c55e}
     .pin.prospect{background:#f59e0b}
     .pin.inactive{background:#6b7280}
     .nav{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--border);padding:10px 8px}
-    .nav-inner{max-width:430px;margin:0 auto;display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+    .nav-inner{max-width:430px;margin:0 auto;display:grid;grid-template-columns:repeat(6,1fr);gap:6px}
     .tab{border:none;background:transparent;border-radius:16px;padding:10px 6px;font-size:11px;color:var(--muted);cursor:pointer}
     .tab.active{background:#111;color:#fff;font-weight:700}
     .small{font-size:13px}
+    .stars{display:flex;gap:6px;flex-wrap:wrap}
+    .star{font-size:24px;cursor:pointer;line-height:1}
+    .star.off{opacity:.3}
+    .toolbar{display:flex;gap:8px;flex-wrap:wrap}
+    .mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+    .pill{display:inline-flex;align-items:center;padding:6px 10px;border-radius:999px;background:#f3f4f6;font-size:12px;color:#374151}
+    .hr{height:1px;background:var(--border);margin:6px 0}
   </style>
 </head>
 <body>
-  <div class="app" id="app"></div>
+  <div id="app" class="app"></div>
 
   <script>
-    const today = "2026-04-23";
+    const STORAGE_KEY = "crm_vin_demo_v3";
+    const today = new Date().toISOString().slice(0, 10);
 
-    let clients = [
-      {
-        id: 1,
-        name: "Au fil de l’aire",
-        type: "CHR",
-        tariff: "CHR",
-        status: "client",
-        city: "Les Aires",
-        zone: "Hérault",
-        address: "1 Pl. de l'Aire, 34600 Les Aires",
-        phone: "0658269126",
-        email: "julien.marine.aufildelaire@gmail.com",
-        contact: "Julien & Marine",
-        notes: "Adore Collines. Bon client actif.",
-        products: ["Collines rouge", "Blanc", "Rosé"],
-        lastVisit: "2026-04-20",
-        nextFollowUp: "2026-05-11",
-        history: [
-          { date: "2026-04-20", type: "commande", text: "Commande Collines rouge, blanc, rosé" },
-          { date: "2025-12-09", type: "visite", text: "Passage et dégustation, très bon retour" }
-        ],
-        orders: [{ date: "2026-04-20", products: "Collines rouge, blanc, rosé", qty: "24 bouteilles" }]
-      },
-      {
-        id: 2,
-        name: "Oli'vins",
-        type: "Caviste",
-        tariff: "Caviste",
-        status: "prospect",
-        city: "Mauguio",
-        zone: "Hérault",
-        address: "248 Bd de la Démocratie, 34130 Mauguio",
-        phone: "0685842191",
-        email: "",
-        contact: "",
-        notes: "Aime Collines, Grande Réserve, Allegro.",
-        products: ["Collines", "Grande Réserve", "Allegro"],
-        lastVisit: "2026-04-02",
-        nextFollowUp: "2026-04-23",
-        history: [
-          { date: "2023-11-15", type: "rdv", text: "Rendez-vous + mail" },
-          { date: "2026-04-02", type: "visite", text: "Revoir début de saison" }
-        ],
-        orders: []
-      },
-      {
-        id: 3,
-        name: "La Cave d'Occitanie",
-        type: "Caviste",
-        tariff: "Caviste",
-        status: "prospect",
-        city: "Baillargues",
-        zone: "Hérault",
-        address: "259 Rue Jean Baptiste Calvignac, 34670 Baillargues",
-        phone: "0467690255",
-        email: "contact@cavedoccitanie.fr",
-        contact: "Stéphane Lebesgue",
-        notes: "Continuer de passer pour trouver une date.",
-        products: ["Tournée Générale", "Allegro"],
-        lastVisit: "2026-04-10",
-        nextFollowUp: "2026-05-01",
-        history: [
-          { date: "2026-03-20", type: "appel", text: "Échange avec le caviste" },
-          { date: "2026-04-10", type: "visite", text: "Passage en cave, à relancer" }
-        ],
-        orders: []
-      },
-      {
-        id: 4,
-        name: "La nona",
-        type: "CHR",
-        tariff: "CHR",
-        status: "client",
-        city: "Faugères",
-        zone: "Hérault",
-        address: "880 Rte de Pézenas, 34600 Faugères",
-        phone: "",
-        email: "",
-        contact: "Maxime",
-        notes: "Jeune, sympa, commande régulièrement.",
-        products: ["Allegro", "Tournée Générale"],
-        lastVisit: "2026-04-18",
-        nextFollowUp: "2026-05-09",
-        history: [
-          { date: "2026-04-18", type: "visite", text: "Passage, bon échange" },
-          { date: "2026-04-05", type: "commande", text: "Commande réassort" }
-        ],
-        orders: [{ date: "2026-04-05", products: "Allegro, TG", qty: "18 bouteilles" }]
-      },
-      {
-        id: 5,
-        name: "Vins d’oc et d’ailleurs",
-        type: "Caviste",
-        tariff: "Caviste",
-        status: "inactif",
-        city: "Agde",
-        zone: "Hérault",
-        address: "31 Av. Général de Gaulle, 34300 Agde",
-        phone: "",
-        email: "",
-        contact: "",
-        notes: "Ancien contact. A aimé Allegro, Collines rouge, Castel. Ne prend plus.",
-        products: ["Allegro", "Collines rouge", "Castel"],
-        lastVisit: "2025-03-14",
-        nextFollowUp: "",
-        history: [
-          { date: "2024-06-04", type: "commande", text: "Première commande" },
-          { date: "2025-03-14", type: "relance", text: "Ne prend plus" }
-        ],
-        orders: [{ date: "2024-06-04", products: "Première commande", qty: "Non précisé" }]
-      }
-    ];
+    const defaultData = {
+      clients: [
+        {
+          id: 1,
+          name: "Au fil de l’aire",
+          type: "CHR",
+          tariff: "CHR",
+          status: "client",
+          city: "Les Aires",
+          zone: "Hérault",
+          address: "1 Pl. de l'Aire, 34600 Les Aires",
+          phone: "0658269126",
+          email: "julien.marine.aufildelaire@gmail.com",
+          contact: "Julien & Marine",
+          notes: "Adore Collines. Bon client actif.",
+          lastVisit: "2026-04-20",
+          nextFollowUp: "2026-05-11",
+          history: [
+            { date: "2026-04-20", type: "commande", text: "Commande Collines rouge, blanc, rosé" },
+            { date: "2025-12-09", type: "visite", text: "Passage et dégustation, très bon retour" }
+          ],
+          orders: [{ date: "2026-04-20", products: "Collines rouge, blanc, rosé", qty: "24 bouteilles" }],
+          tastings: [
+            { date: "2026-04-20", productId: 1, rating: 5, liked: true, comment: "Très bon retour" },
+            { date: "2026-04-20", productId: 7, rating: 4, liked: true, comment: "Frais, facile" }
+          ]
+        },
+        {
+          id: 2,
+          name: "Oli'vins",
+          type: "Caviste",
+          tariff: "Caviste",
+          status: "prospect",
+          city: "Mauguio",
+          zone: "Hérault",
+          address: "248 Bd de la Démocratie, 34130 Mauguio",
+          phone: "0685842191",
+          email: "",
+          contact: "",
+          notes: "Aime Collines, Grande Réserve, Allegro.",
+          lastVisit: "2026-04-02",
+          nextFollowUp: "2026-04-23",
+          history: [
+            { date: "2023-11-15", type: "rdv", text: "Rendez-vous + mail" },
+            { date: "2026-04-02", type: "visite", text: "Revoir début de saison" }
+          ],
+          orders: [],
+          tastings: [
+            { date: "2026-04-02", productId: 4, rating: 4, liked: true, comment: "Belle fraîcheur" },
+            { date: "2026-04-02", productId: 3, rating: 4, liked: true, comment: "Plaît bien" }
+          ]
+        },
+        {
+          id: 3,
+          name: "La Cave d'Occitanie",
+          type: "Caviste",
+          tariff: "Caviste",
+          status: "prospect",
+          city: "Baillargues",
+          zone: "Hérault",
+          address: "259 Rue Jean Baptiste Calvignac, 34670 Baillargues",
+          phone: "0467690255",
+          email: "contact@cavedoccitanie.fr",
+          contact: "Stéphane Lebesgue",
+          notes: "Continuer de passer pour trouver une date.",
+          lastVisit: "2026-04-10",
+          nextFollowUp: "2026-05-01",
+          history: [
+            { date: "2026-03-20", type: "appel", text: "Échange avec le caviste" },
+            { date: "2026-04-10", type: "visite", text: "Passage en cave, à relancer" }
+          ],
+          orders: [],
+          tastings: [
+            { date: "2026-04-10", productId: 3, rating: 2, liked: false, comment: "Prix trop élevé" }
+          ]
+        },
+        {
+          id: 4,
+          name: "La nona",
+          type: "CHR",
+          tariff: "CHR",
+          status: "client",
+          city: "Faugères",
+          zone: "Hérault",
+          address: "880 Rte de Pézenas, 34600 Faugères",
+          phone: "",
+          email: "",
+          contact: "Maxime",
+          notes: "Jeune, sympa, commande régulièrement.",
+          lastVisit: "2026-04-18",
+          nextFollowUp: "2026-05-09",
+          history: [
+            { date: "2026-04-18", type: "visite", text: "Passage, bon échange" },
+            { date: "2026-04-05", type: "commande", text: "Commande réassort" }
+          ],
+          orders: [{ date: "2026-04-05", products: "Allegro, TG", qty: "18 bouteilles" }],
+          tastings: [
+            { date: "2026-04-18", productId: 1, rating: 4, liked: true, comment: "Marche bien" },
+            { date: "2026-04-18", productId: 3, rating: 5, liked: true, comment: "Très vendeur" }
+          ]
+        },
+        {
+          id: 5,
+          name: "Vins d’oc et d’ailleurs",
+          type: "Caviste",
+          tariff: "Caviste",
+          status: "inactif",
+          city: "Agde",
+          zone: "Hérault",
+          address: "31 Av. Général de Gaulle, 34300 Agde",
+          phone: "",
+          email: "",
+          contact: "",
+          notes: "Ancien contact. A aimé Allegro, Collines rouge, Castel. Ne prend plus.",
+          lastVisit: "2025-03-14",
+          nextFollowUp: "",
+          history: [
+            { date: "2024-06-04", type: "commande", text: "Première commande" },
+            { date: "2025-03-14", type: "relance", text: "Ne prend plus" }
+          ],
+          orders: [{ date: "2024-06-04", products: "Première commande", qty: "Non précisé" }],
+          tastings: [
+            { date: "2024-06-04", productId: 4, rating: 4, liked: true, comment: "Aime Allegro" },
+            { date: "2024-06-04", productId: 1, rating: 4, liked: true, comment: "Aime Collines rouge" },
+            { date: "2024-06-04", productId: 5, rating: 4, liked: true, comment: "Aime Castel" }
+          ]
+        }
+      ],
+      products: [
+        {
+          id: 1,
+          family: "Les Collines Rouge",
+          name: "Les Collines Rouge",
+          vintage: "2021",
+          color: "Rouge",
+          active: true,
+          linkedTo: null,
+          techSheet: "AOP Faugères. Grenache 40%, Carignan 30%, Syrah 20%, Mourvèdre 10%. Vin plaisir, fruits rouges frais, tannins soyeux.",
+          notes: "Entrée de gamme facile à vendre."
+        },
+        {
+          id: 2,
+          family: "Les Collines Rosé",
+          name: "Les Collines Rosé",
+          vintage: "2025",
+          color: "Rosé",
+          active: true,
+          linkedTo: null,
+          techSheet: "AOP Faugères. Syrah 20%, Cinsault 40%, Grenache 30%, Mourvèdre 10%. Frais, rond, fruité, idéal apéritif.",
+          notes: "Rosé facile, très terrain."
+        },
+        {
+          id: 3,
+          family: "Tournée Générale",
+          name: "Tournée Générale",
+          vintage: "2024",
+          color: "Rouge",
+          active: true,
+          linkedTo: null,
+          techSheet: "AOP Faugères. Carignan 25%, Syrah 25%, Grenache 25%, Cinsault 25%. Sans sulfite ajouté. Gourmand et frais.",
+          notes: "Très vendeur, moderne."
+        },
+        {
+          id: 4,
+          family: "Allegro",
+          name: "Allegro",
+          vintage: "2023",
+          color: "Blanc",
+          active: true,
+          linkedTo: null,
+          techSheet: "AOP Faugères. Vermentino 50%, Roussanne 50%. Floral, agrumes, minéral.",
+          notes: "Marche bien en CHR."
+        },
+        {
+          id: 5,
+          family: "Castel Fossibus",
+          name: "Castel Fossibus",
+          vintage: "2019",
+          color: "Rouge",
+          active: true,
+          linkedTo: null,
+          techSheet: "AOP Faugères. Syrah 40%, Mourvèdre 20%, Grenache 30%, Carignan 10%. Elevage 12 mois en fût. Complexe et long.",
+          notes: "Vin de garde, connaisseurs."
+        },
+        {
+          id: 6,
+          family: "Grande Réserve",
+          name: "Grande Réserve",
+          vintage: "2020",
+          color: "Rouge",
+          active: true,
+          linkedTo: null,
+          techSheet: "AOP Faugères. Carignan VV 30%, Syrah 30%, Grenache VV 30%, Mourvèdre 10%. Structuré, épicé, 6 à 8 ans de garde.",
+          notes: "Plus haut de gamme."
+        },
+        {
+          id: 7,
+          family: "Les Collines Blanc",
+          name: "Les Collines Blanc",
+          vintage: "2025",
+          color: "Blanc",
+          active: true,
+          linkedTo: null,
+          techSheet: "AOC Faugères. Rolle 50%, Roussanne 40%, Carignan blanc 10%. Frais, agrumes, fleurs blanches, apéritif.",
+          notes: "Très accessible."
+        },
+        {
+          id: 8,
+          family: "Le Rêve de Noé",
+          name: "Le Rêve de Noé",
+          vintage: "2021",
+          color: "Rouge",
+          active: true,
+          linkedTo: null,
+          techSheet: "AOP Faugères. Syrah 50%, Mourvèdre 50%. Puissant, riche, 8 à 12 ans de garde.",
+          notes: "Cuvée premium."
+        }
+      ],
+      tourList: [
+        { id: 1, time: "09:30" },
+        { id: 2, time: "11:00" },
+        { id: 3, time: "14:15" },
+        { id: 4, time: "16:30" }
+      ]
+    };
 
+    let data = loadData();
     let screen = "home";
-    let selectedId = 1;
+    let selectedClientId = 1;
+    let selectedProductId = 1;
     let search = "";
+    let productFilter = "all";
+
+    function loadData() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        return raw ? JSON.parse(raw) : structuredClone(defaultData);
+      } catch {
+        return structuredClone(defaultData);
+      }
+    }
+
+    function saveData() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    }
+
+    function resetData() {
+      if (!confirm("Réinitialiser les données locales ?")) return;
+      data = structuredClone(defaultData);
+      saveData();
+      render();
+    }
 
     function fmtDate(v) {
       if (!v) return "—";
-      return new Date(v).toLocaleDateString("fr-FR");
+      const d = new Date(v);
+      return isNaN(d) ? v : d.toLocaleDateString("fr-FR");
     }
 
     function addDays(dateStr, days) {
@@ -189,73 +341,50 @@
       return d.toISOString().slice(0, 10);
     }
 
+    function nextId(arr) {
+      return Math.max(0, ...arr.map(x => Number(x.id) || 0)) + 1;
+    }
+
+    function clientById(id) {
+      return data.clients.find(c => c.id === Number(id));
+    }
+
+    function productById(id) {
+      return data.products.find(p => p.id === Number(id));
+    }
+
     function selectedClient() {
-      return clients.find(c => c.id === selectedId) || clients[0];
+      return clientById(selectedClientId) || data.clients[0];
     }
 
-    function dueToday() {
-      return clients
-        .filter(c => c.nextFollowUp && c.nextFollowUp <= today)
-        .sort((a,b) => a.nextFollowUp.localeCompare(b.nextFollowUp));
-    }
-
-    function dueSoon() {
-      return clients
-        .filter(c => c.nextFollowUp && c.nextFollowUp > today && c.nextFollowUp <= "2026-04-30")
-        .sort((a,b) => a.nextFollowUp.localeCompare(b.nextFollowUp));
-    }
-
-    function filteredClients() {
-      return clients.filter(c => {
-        const hay = `${c.name} ${c.city} ${c.type} ${c.status} ${c.notes}`.toLowerCase();
-        return hay.includes(search.toLowerCase());
-      });
+    function selectedProduct() {
+      return productById(selectedProductId) || data.products[0];
     }
 
     function openClient(id) {
-      selectedId = id;
+      selectedClientId = Number(id);
       screen = "client";
       render();
     }
 
-    function markVisited(id, customDays = 21) {
-      clients = clients.map(c => c.id === id ? {
-        ...c,
-        lastVisit: today,
-        nextFollowUp: addDays(today, customDays),
-        history: [
-          { date: today, type: "visite", text: `Client visité · relance fixée à ${customDays} jours` },
-          ...c.history
-        ]
-      } : c);
+    function openProduct(id) {
+      selectedProductId = Number(id);
+      screen = "product";
       render();
     }
 
-    function postponeFollowUp(id, days) {
-      clients = clients.map(c => c.id === id ? { ...c, nextFollowUp: addDays(today, days) } : c);
+    function go(next) {
+      screen = next;
       render();
     }
 
-    function addNote() {
-      const textarea = document.getElementById("new-note");
-      if (!textarea || !textarea.value.trim()) return;
-      const val = textarea.value.trim();
-      clients = clients.map(c => c.id === selectedId ? {
-        ...c,
-        history: [{ date: today, type: "note", text: val }, ...c.history]
-      } : c);
+    function setSearch(v) {
+      search = v;
       render();
     }
 
-    function addOrder() {
-      const products = document.getElementById("order-products")?.value.trim() || "";
-      const qty = document.getElementById("order-qty")?.value.trim() || "Non précisé";
-      if (!products) return;
-      clients = clients.map(c => c.id === selectedId ? {
-        ...c,
-        orders: [{ date: today, products, qty }, ...c.orders],
-        history: [{ date: today, type: "commande", text: `${products} · ${qty}` }, ...c.history]
-      } : c);
+    function setProductFilter(v) {
+      productFilter = v;
       render();
     }
 
@@ -272,19 +401,336 @@
       return `<span class="badge ${cls}">${status}</span>`;
     }
 
+    function wineBadge(active) {
+      return `<span class="badge ${active ? "activeWine" : "archivedWine"}">${active ? "actif" : "archivé"}</span>`;
+    }
+
+    function filteredClients() {
+      return data.clients.filter(c => {
+        const hay = `${c.name} ${c.city} ${c.type} ${c.status} ${c.notes}`.toLowerCase();
+        return hay.includes(search.toLowerCase());
+      });
+    }
+
+    function filteredProducts() {
+      return data.products.filter(p => {
+        const hay = `${p.name} ${p.family} ${p.vintage} ${p.color} ${p.notes} ${p.techSheet}`.toLowerCase();
+        const okSearch = hay.includes(search.toLowerCase());
+        const okFilter =
+          productFilter === "all" ||
+          (productFilter === "active" && p.active) ||
+          (productFilter === "archived" && !p.active);
+        return okSearch && okFilter;
+      });
+    }
+
+    function dueToday() {
+      return data.clients
+        .filter(c => c.nextFollowUp && c.nextFollowUp <= today)
+        .sort((a,b) => a.nextFollowUp.localeCompare(b.nextFollowUp));
+    }
+
+    function dueSoon() {
+      const limit = addDays(today, 7);
+      return data.clients
+        .filter(c => c.nextFollowUp && c.nextFollowUp > today && c.nextFollowUp <= limit)
+        .sort((a,b) => a.nextFollowUp.localeCompare(b.nextFollowUp));
+    }
+
+    function markVisited(id, customDays = 21) {
+      data.clients = data.clients.map(c => c.id === Number(id) ? {
+        ...c,
+        lastVisit: today,
+        nextFollowUp: addDays(today, customDays),
+        history: [
+          { date: today, type: "visite", text: `Client visité · relance fixée à ${customDays} jours` },
+          ...c.history
+        ]
+      } : c);
+      saveData();
+      render();
+    }
+
+    function postponeFollowUp(id, days) {
+      data.clients = data.clients.map(c => c.id === Number(id) ? {
+        ...c,
+        nextFollowUp: addDays(today, days),
+        history: [
+          { date: today, type: "relance", text: `Relance replanifiée à +${days} jours` },
+          ...c.history
+        ]
+      } : c);
+      saveData();
+      render();
+    }
+
+    function addNote() {
+      const textarea = document.getElementById("new-note");
+      if (!textarea || !textarea.value.trim()) return;
+      const val = textarea.value.trim();
+      data.clients = data.clients.map(c => c.id === selectedClientId ? {
+        ...c,
+        history: [{ date: today, type: "note", text: val }, ...c.history]
+      } : c);
+      saveData();
+      render();
+    }
+
+    function addOrder() {
+      const products = document.getElementById("order-products")?.value.trim() || "";
+      const qty = document.getElementById("order-qty")?.value.trim() || "Non précisé";
+      if (!products) return;
+      data.clients = data.clients.map(c => c.id === selectedClientId ? {
+        ...c,
+        orders: [{ date: today, products, qty }, ...c.orders],
+        history: [{ date: today, type: "commande", text: `${products} · ${qty}` }, ...c.history]
+      } : c);
+      saveData();
+      render();
+    }
+
+    function addTasting() {
+      const productId = Number(document.getElementById("taste-product")?.value || 0);
+      const rating = Number(document.getElementById("taste-rating")?.value || 0);
+      const liked = document.getElementById("taste-liked")?.checked || false;
+      const comment = document.getElementById("taste-comment")?.value.trim() || "";
+      if (!productId || !rating) {
+        alert("Choisis un vin et une note.");
+        return;
+      }
+      const product = productById(productId);
+      const tasting = { date: today, productId, rating, liked, comment };
+      data.clients = data.clients.map(c => c.id === selectedClientId ? {
+        ...c,
+        tastings: [tasting, ...(c.tastings || [])],
+        history: [
+          { date: today, type: "dégustation", text: `${product.name} ${product.vintage} · ${"★".repeat(rating)}${liked ? " · aimé" : ""}${comment ? " · " + comment : ""}` },
+          ...c.history
+        ]
+      } : c);
+      saveData();
+      render();
+    }
+
+    function addClientToTour(clientId) {
+      clientId = Number(clientId);
+      if (!data.tourList.find(t => t.id === clientId)) {
+        data.tourList.push({ id: clientId, time: "" });
+        saveData();
+      }
+      screen = "tour";
+      render();
+    }
+
+    function removeFromTour(clientId) {
+      data.tourList = data.tourList.filter(t => t.id !== Number(clientId));
+      saveData();
+      render();
+    }
+
+    function moveUp(index) {
+      if (index <= 0) return;
+      [data.tourList[index - 1], data.tourList[index]] = [data.tourList[index], data.tourList[index - 1]];
+      saveData();
+      render();
+    }
+
+    function moveDown(index) {
+      if (index >= data.tourList.length - 1) return;
+      [data.tourList[index + 1], data.tourList[index]] = [data.tourList[index], data.tourList[index + 1]];
+      saveData();
+      render();
+    }
+
+    function updateTourTime(index, value) {
+      data.tourList[index].time = value;
+      saveData();
+    }
+
+    function saveClientEdits() {
+      const c = selectedClient();
+      c.name = document.getElementById("edit-client-name").value.trim();
+      c.contact = document.getElementById("edit-client-contact").value.trim();
+      c.phone = document.getElementById("edit-client-phone").value.trim();
+      c.email = document.getElementById("edit-client-email").value.trim();
+      c.address = document.getElementById("edit-client-address").value.trim();
+      c.city = document.getElementById("edit-client-city").value.trim();
+      c.zone = document.getElementById("edit-client-zone").value.trim();
+      c.type = document.getElementById("edit-client-type").value;
+      c.tariff = document.getElementById("edit-client-tariff").value.trim();
+      c.status = document.getElementById("edit-client-status").value;
+      c.notes = document.getElementById("edit-client-notes").value.trim();
+      saveData();
+      alert("Fiche client mise à jour.");
+      render();
+    }
+
+    function saveProductEdits() {
+      const p = selectedProduct();
+      p.family = document.getElementById("edit-product-family").value.trim();
+      p.name = document.getElementById("edit-product-name").value.trim();
+      p.vintage = document.getElementById("edit-product-vintage").value.trim();
+      p.color = document.getElementById("edit-product-color").value.trim();
+      p.notes = document.getElementById("edit-product-notes").value.trim();
+      p.techSheet = document.getElementById("edit-product-tech").value.trim();
+      p.active = document.getElementById("edit-product-active").checked;
+      saveData();
+      alert("Fiche produit mise à jour.");
+      render();
+    }
+
+    function duplicateProduct() {
+      const p = selectedProduct();
+      const copy = JSON.parse(JSON.stringify(p));
+      copy.id = nextId(data.products);
+      copy.name = `${p.name} copie`;
+      copy.active = false;
+      copy.linkedTo = p.id;
+      data.products.unshift(copy);
+      selectedProductId = copy.id;
+      saveData();
+      alert("Produit dupliqué.");
+      render();
+    }
+
+    function createNextVintage() {
+      const p = selectedProduct();
+      const copy = JSON.parse(JSON.stringify(p));
+      copy.id = nextId(data.products);
+      copy.vintage = String((parseInt(p.vintage, 10) || new Date().getFullYear()) + 1);
+      copy.active = true;
+      copy.linkedTo = p.id;
+      copy.name = p.name;
+      data.products.unshift(copy);
+      selectedProductId = copy.id;
+      saveData();
+      alert("Nouveau millésime créé.");
+      render();
+    }
+
+    function toggleArchiveProduct() {
+      const p = selectedProduct();
+      p.active = !p.active;
+      saveData();
+      render();
+    }
+
+    function createNewProduct() {
+      const family = prompt("Nom de la cuvée / famille ?");
+      if (!family) return;
+      const vintage = prompt("Millésime ?", String(new Date().getFullYear())) || "";
+      const color = prompt("Couleur / type ?", "Rouge") || "";
+      const product = {
+        id: nextId(data.products),
+        family,
+        name: family,
+        vintage,
+        color,
+        active: true,
+        linkedTo: null,
+        techSheet: "",
+        notes: ""
+      };
+      data.products.unshift(product);
+      selectedProductId = product.id;
+      saveData();
+      screen = "product";
+      render();
+    }
+
+    function productStats(productId, includeFamily = false) {
+      const p = productById(productId);
+      const ids = includeFamily
+        ? data.products.filter(x => x.family === p.family).map(x => x.id)
+        : [productId];
+      const all = data.clients.flatMap(c => (c.tastings || []).filter(t => ids.includes(t.productId)).map(t => ({...t, clientId: c.id, clientName: c.name})));
+      const ratings = all.map(x => x.rating);
+      const avg = ratings.length ? (ratings.reduce((a,b)=>a+b,0) / ratings.length).toFixed(1) : "—";
+      const liked = all.filter(x => x.liked).length;
+      const uniqueClients = new Set(all.map(x => x.clientId)).size;
+      return { total: all.length, avg, liked, uniqueClients, tastings: all };
+    }
+
+    function exportJSON() {
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+      downloadBlob(blob, `crm-vin-sauvegarde-${today}.json`);
+    }
+
+    function exportClientsCSV() {
+      const rows = [
+        ["id","nom","type","tarif","statut","ville","zone","contact","telephone","email","adresse","derniere_visite","prochaine_relance","notes"]
+      ];
+      data.clients.forEach(c => {
+        rows.push([c.id,c.name,c.type,c.tariff,c.status,c.city,c.zone,c.contact,c.phone,c.email,c.address,c.lastVisit,c.nextFollowUp,c.notes]);
+      });
+      downloadBlob(new Blob([toCSV(rows)], { type: "text/csv;charset=utf-8;" }), `clients-${today}.csv`);
+    }
+
+    function exportProductsCSV() {
+      const rows = [
+        ["id","famille","nom","millesime","couleur","actif","lie_a","notes","fiche_technique"]
+      ];
+      data.products.forEach(p => {
+        rows.push([p.id,p.family,p.name,p.vintage,p.color,p.active ? "oui" : "non",p.linkedTo || "",p.notes,p.techSheet]);
+      });
+      downloadBlob(new Blob([toCSV(rows)], { type: "text/csv;charset=utf-8;" }), `produits-${today}.csv`);
+    }
+
+    function exportReadableTXT() {
+      let txt = `CRM VIN - EXPORT LISIBLE - ${today}\n\n`;
+      data.clients.forEach(c => {
+        txt += `=== ${c.name} ===\n`;
+        txt += `Type: ${c.type} | Tarif: ${c.tariff} | Statut: ${c.status}\n`;
+        txt += `Ville: ${c.city} | Zone: ${c.zone}\n`;
+        txt += `Contact: ${c.contact}\n`;
+        txt += `Téléphone: ${c.phone}\n`;
+        txt += `Email: ${c.email}\n`;
+        txt += `Adresse: ${c.address}\n`;
+        txt += `Dernière visite: ${c.lastVisit}\n`;
+        txt += `Prochaine relance: ${c.nextFollowUp}\n`;
+        txt += `Notes: ${c.notes}\n`;
+        txt += `Historique:\n`;
+        (c.history || []).forEach(h => txt += ` - ${h.date} | ${h.type} | ${h.text}\n`);
+        txt += `Dégustations:\n`;
+        (c.tastings || []).forEach(t => {
+          const p = productById(t.productId);
+          txt += ` - ${t.date} | ${p ? p.name + " " + p.vintage : "vin inconnu"} | ${"★".repeat(t.rating)} | ${t.liked ? "aimé" : "non"} | ${t.comment || ""}\n`;
+        });
+        txt += `\n`;
+      });
+      downloadBlob(new Blob([txt], { type: "text/plain;charset=utf-8;" }), `crm-vin-lisible-${today}.txt`);
+    }
+
+    function downloadBlob(blob, filename) {
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = filename;
+      a.click();
+      URL.revokeObjectURL(a.href);
+    }
+
+    function toCSV(rows) {
+      return rows.map(row =>
+        row.map(v => {
+          const s = String(v ?? "");
+          return `"${s.replace(/"/g, '""')}"`;
+        }).join(";")
+      ).join("\n");
+    }
+
     function homeView() {
       const urgent = dueToday();
-      const tour = clients.filter(c => [1,2,3,4].includes(c.id));
+      const activeWines = data.products.filter(p => p.active).length;
       return `
         <div class="header">
           <h1 class="title">Bonjour 👋</h1>
-          <div class="subtitle">Jeudi 23 avril · terrain</div>
+          <div class="subtitle">Usage terrain · relances · vins · tournée</div>
         </div>
         <div class="content">
           <div class="card dark">
             <div class="subtitle">Aujourd’hui</div>
-            <div style="font-size:28px;font-weight:700;margin-top:6px;">4 étapes en tournée</div>
-            <div class="subtitle" style="margin-top:6px;">118 km estimés · ${urgent.length} relance(s) urgente(s)</div>
+            <div style="font-size:28px;font-weight:700;margin-top:6px;">${data.tourList.length} étape(s) prévues</div>
+            <div class="subtitle" style="margin-top:6px;">${urgent.length} relance(s) urgente(s) · ${activeWines} vin(s) actifs</div>
             <div class="grid2" style="margin-top:14px;">
               <button class="btn secondary" onclick="go('tour')">Tournée</button>
               <button class="btn secondary" onclick="go('relances')">Relances</button>
@@ -292,9 +738,9 @@
           </div>
 
           <div class="grid3">
-            <div class="card"><div class="stat">${clients.filter(c => c.status==='client').length}</div><div class="muted">Clients</div></div>
-            <div class="card"><div class="stat">${urgent.length}</div><div class="muted">Relances urgentes</div></div>
-            <div class="card"><div class="stat">${tour.length}</div><div class="muted">Tournée du jour</div></div>
+            <div class="card"><div class="stat">${data.clients.filter(c => c.status==='client').length}</div><div class="muted">Clients</div></div>
+            <div class="card"><div class="stat">${urgent.length}</div><div class="muted">Relances</div></div>
+            <div class="card"><div class="stat">${activeWines}</div><div class="muted">Vins actifs</div></div>
           </div>
 
           <div class="card">
@@ -305,11 +751,22 @@
                   <div class="row">
                     <div>
                       <div class="name">${c.name}</div>
-                      <div class="meta">${c.city} · ${c.type}</div>
+                      <div class="meta">${c.city} · ${fmtDate(c.nextFollowUp)}</div>
                     </div>
                     ${statusBadge(c.status)}
                   </div>
-                </div>`).join("") : `<div class="muted">Aucune relance urgente.</div>`}
+                </div>
+              `).join("") : `<div class="muted">Aucune relance urgente.</div>`}
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="section-title">Raccourcis</div>
+            <div class="grid2">
+              <button class="btn soft" onclick="go('clients')">Clients</button>
+              <button class="btn soft" onclick="go('products')">Produits</button>
+              <button class="btn soft" onclick="go('map')">Carte</button>
+              <button class="btn soft" onclick="go('settings')">Sauvegarde</button>
             </div>
           </div>
         </div>
@@ -321,10 +778,10 @@
       return `
         <div class="header">
           <h1 class="title">Clients & prospects</h1>
-          <div class="subtitle">${list.length} fiches</div>
+          <div class="subtitle">${list.length} fiche(s)</div>
         </div>
         <div class="content">
-          <input class="field" placeholder="Rechercher un client, une ville..." value="${search.replace(/"/g,'&quot;')}" oninput="setSearch(this.value)" />
+          <input class="field" placeholder="Rechercher un client, une ville..." value="${escapeHtml(search)}" oninput="setSearch(this.value)" />
           <div class="list">
             ${list.map(c => `
               <div class="item" onclick="openClient(${c.id})">
@@ -332,7 +789,7 @@
                   <div>
                     <div class="name">${c.name}</div>
                     <div class="meta">${c.city} · ${c.type} · Tarif ${c.tariff}</div>
-                    <div class="small" style="margin-top:8px;">${c.notes}</div>
+                    <div class="small" style="margin-top:8px;">${escapeHtml(c.notes)}</div>
                   </div>
                   ${statusBadge(c.status)}
                 </div>
@@ -345,13 +802,16 @@
 
     function clientView() {
       const c = selectedClient();
+      const tastingOptions = data.products.filter(p => p.active).map(p =>
+        `<option value="${p.id}">${escapeHtml(p.name)} ${escapeHtml(p.vintage)}</option>`
+      ).join("");
       return `
         <div class="header">
           <div class="row">
             <button class="btn soft" onclick="go('clients')">Retour</button>
             <div style="text-align:right;">
-              <h1 class="title" style="font-size:20px;">${c.name}</h1>
-              <div class="subtitle">${c.type} · Tarif ${c.tariff}</div>
+              <h1 class="title" style="font-size:20px;">${escapeHtml(c.name)}</h1>
+              <div class="subtitle">${escapeHtml(c.type)} · Tarif ${escapeHtml(c.tariff)}</div>
             </div>
           </div>
         </div>
@@ -359,8 +819,8 @@
           <div class="card">
             <div class="row">
               <div>
-                <div class="name">${c.contact || "Contact à compléter"}</div>
-                <div class="meta">${c.city} · ${c.zone}</div>
+                <div class="name">${escapeHtml(c.contact || "Contact à compléter")}</div>
+                <div class="meta">${escapeHtml(c.city)} · ${escapeHtml(c.zone)}</div>
               </div>
               ${statusBadge(c.status)}
             </div>
@@ -372,7 +832,7 @@
             </div>
             <div class="card" style="padding:12px;margin-top:14px;background:#fafafa;">
               <div class="muted">Adresse</div>
-              <div class="small" style="margin-top:6px;font-weight:700;">${c.address}</div>
+              <div class="small" style="margin-top:6px;font-weight:700;">${escapeHtml(c.address)}</div>
             </div>
             <div class="grid2" style="margin-top:12px;">
               <div class="card" style="padding:12px;background:#fafafa;">
@@ -397,31 +857,221 @@
           </div>
 
           <div class="card">
+            <div class="section-title">Ajouter dégustation</div>
+            <select id="taste-product" class="field">${tastingOptions}</select>
+            <select id="taste-rating" class="field" style="margin-top:10px;">
+              <option value="0">Note en étoiles</option>
+              <option value="1">★☆☆☆☆</option>
+              <option value="2">★★☆☆☆</option>
+              <option value="3">★★★☆☆</option>
+              <option value="4">★★★★☆</option>
+              <option value="5">★★★★★</option>
+            </select>
+            <label style="display:flex;align-items:center;gap:8px;margin-top:10px;font-size:14px;">
+              <input id="taste-liked" type="checkbox" />
+              Le client a aimé
+            </label>
+            <textarea id="taste-comment" class="field" placeholder="Commentaire rapide" style="margin-top:10px;"></textarea>
+            <button class="btn full" style="margin-top:10px;" onclick="addTasting()">Ajouter la dégustation</button>
+          </div>
+
+          <div class="card">
             <div class="section-title">Nouvelle note</div>
-            <textarea id="new-note" class="field" placeholder="Ex : très bon échange, aime Allegro, repasser fin mai..."></textarea>
-            <button class="btn" style="margin-top:10px;width:100%;" onclick="addNote()">Ajouter la note</button>
+            <textarea id="new-note" class="field" placeholder="Ex : repasser fin mai, bien aimé Allegro..."></textarea>
+            <button class="btn full" style="margin-top:10px;" onclick="addNote()">Ajouter la note</button>
           </div>
 
           <div class="card">
             <div class="section-title">Nouvelle commande</div>
             <input id="order-products" class="field" placeholder="Produits" />
             <input id="order-qty" class="field" placeholder="Quantités" style="margin-top:10px;" />
-            <button class="btn" style="margin-top:10px;width:100%;" onclick="addOrder()">Ajouter la commande</button>
+            <button class="btn full" style="margin-top:10px;" onclick="addOrder()">Ajouter la commande</button>
+          </div>
+
+          <div class="card">
+            <div class="section-title">Dégustations récentes</div>
+            <div class="list">
+              ${(c.tastings || []).length ? c.tastings.map(t => {
+                const p = productById(t.productId);
+                return `
+                  <div class="item" onclick="${p ? `openProduct(${p.id})` : ''}">
+                    <div class="name">${p ? escapeHtml(p.name) + " " + escapeHtml(p.vintage) : "Vin inconnu"}</div>
+                    <div class="meta">${fmtDate(t.date)} · ${"★".repeat(t.rating)}${t.liked ? " · aimé" : ""}</div>
+                    <div class="small" style="margin-top:8px;">${escapeHtml(t.comment || "")}</div>
+                  </div>
+                `;
+              }).join("") : `<div class="muted">Aucune dégustation.</div>`}
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="section-title">Éditer la fiche</div>
+            <input id="edit-client-name" class="field" value="${escapeHtml(c.name)}" placeholder="Nom" />
+            <input id="edit-client-contact" class="field" value="${escapeHtml(c.contact)}" placeholder="Contact" style="margin-top:10px;" />
+            <input id="edit-client-phone" class="field" value="${escapeHtml(c.phone)}" placeholder="Téléphone" style="margin-top:10px;" />
+            <input id="edit-client-email" class="field" value="${escapeHtml(c.email)}" placeholder="Email" style="margin-top:10px;" />
+            <input id="edit-client-address" class="field" value="${escapeHtml(c.address)}" placeholder="Adresse" style="margin-top:10px;" />
+            <input id="edit-client-city" class="field" value="${escapeHtml(c.city)}" placeholder="Ville" style="margin-top:10px;" />
+            <input id="edit-client-zone" class="field" value="${escapeHtml(c.zone)}" placeholder="Zone" style="margin-top:10px;" />
+            <select id="edit-client-type" class="field" style="margin-top:10px;">
+              ${["Caviste","CHR","Grossiste"].map(v => `<option ${c.type===v?'selected':''}>${v}</option>`).join("")}
+            </select>
+            <input id="edit-client-tariff" class="field" value="${escapeHtml(c.tariff)}" placeholder="Tarif" style="margin-top:10px;" />
+            <select id="edit-client-status" class="field" style="margin-top:10px;">
+              ${["prospect","client","inactif"].map(v => `<option value="${v}" ${c.status===v?'selected':''}>${v}</option>`).join("")}
+            </select>
+            <textarea id="edit-client-notes" class="field" style="margin-top:10px;" placeholder="Notes">${escapeHtml(c.notes)}</textarea>
+            <button class="btn full" style="margin-top:10px;" onclick="saveClientEdits()">Enregistrer la fiche client</button>
           </div>
 
           <div class="card">
             <div class="section-title">Historique</div>
             <div class="timeline">
-              ${c.history.map(h => `
+              ${(c.history || []).map(h => `
                 <div class="timeline-item">
                   <div class="dot"></div>
                   <div>
-                    <div class="name" style="font-size:14px;text-transform:capitalize;">${h.type}</div>
+                    <div class="name" style="font-size:14px;text-transform:capitalize;">${escapeHtml(h.type)}</div>
                     <div class="meta">${fmtDate(h.date)}</div>
-                    <div class="small" style="margin-top:6px;">${h.text}</div>
+                    <div class="small" style="margin-top:6px;">${escapeHtml(h.text)}</div>
                   </div>
                 </div>
               `).join("")}
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function productsView() {
+      const list = filteredProducts();
+      return `
+        <div class="header">
+          <h1 class="title">Produits / vins</h1>
+          <div class="subtitle">${list.length} fiche(s)</div>
+        </div>
+        <div class="content">
+          <div class="toolbar">
+            <button class="btn" onclick="createNewProduct()">+ Nouveau vin</button>
+            <button class="btn soft" onclick="setProductFilter('all')">Tous</button>
+            <button class="btn soft" onclick="setProductFilter('active')">Actifs</button>
+            <button class="btn soft" onclick="setProductFilter('archived')">Archivés</button>
+          </div>
+          <input class="field" placeholder="Rechercher un vin..." value="${escapeHtml(search)}" oninput="setSearch(this.value)" />
+          <div class="list">
+            ${list.map(p => {
+              const stats = productStats(p.id, false);
+              return `
+                <div class="item" onclick="openProduct(${p.id})">
+                  <div class="row">
+                    <div>
+                      <div class="name">${escapeHtml(p.name)} ${escapeHtml(p.vintage)}</div>
+                      <div class="meta">${escapeHtml(p.color)} · Famille ${escapeHtml(p.family)}</div>
+                      <div class="small" style="margin-top:8px;">${escapeHtml(p.notes || "")}</div>
+                      <div class="meta" style="margin-top:8px;">${stats.total} dégustation(s) · note moyenne ${stats.avg}</div>
+                    </div>
+                    ${wineBadge(p.active)}
+                  </div>
+                </div>
+              `;
+            }).join("")}
+          </div>
+        </div>
+      `;
+    }
+
+    function productView() {
+      const p = selectedProduct();
+      const stats = productStats(p.id, false);
+      const familyStats = productStats(p.id, true);
+      const related = data.products.filter(x => x.family === p.family && x.id !== p.id);
+      return `
+        <div class="header">
+          <div class="row">
+            <button class="btn soft" onclick="go('products')">Retour</button>
+            <div style="text-align:right;">
+              <h1 class="title" style="font-size:20px;">${escapeHtml(p.name)} ${escapeHtml(p.vintage)}</h1>
+              <div class="subtitle">${escapeHtml(p.color)} · Famille ${escapeHtml(p.family)}</div>
+            </div>
+          </div>
+        </div>
+        <div class="content">
+          <div class="card">
+            <div class="row">
+              <div>
+                <div class="name">${escapeHtml(p.name)} ${escapeHtml(p.vintage)}</div>
+                <div class="meta">${escapeHtml(p.color)}</div>
+              </div>
+              ${wineBadge(p.active)}
+            </div>
+            <div class="toolbar" style="margin-top:14px;">
+              <button class="btn soft" onclick="duplicateProduct()">Dupliquer</button>
+              <button class="btn soft" onclick="createNextVintage()">Nouveau millésime</button>
+              <button class="btn warn" onclick="toggleArchiveProduct()">${p.active ? "Archiver" : "Réactiver"}</button>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="section-title">Stats de cette fiche</div>
+            <div class="grid3">
+              <div class="card" style="padding:12px;"><div class="stat">${stats.total}</div><div class="muted">Dégustations</div></div>
+              <div class="card" style="padding:12px;"><div class="stat">${stats.avg}</div><div class="muted">Note moy.</div></div>
+              <div class="card" style="padding:12px;"><div class="stat">${stats.uniqueClients}</div><div class="muted">Clients</div></div>
+            </div>
+            <div class="hr"></div>
+            <div class="section-title" style="margin-top:0;">Stats de la famille</div>
+            <div class="grid3">
+              <div class="card" style="padding:12px;"><div class="stat">${familyStats.total}</div><div class="muted">Dégustations</div></div>
+              <div class="card" style="padding:12px;"><div class="stat">${familyStats.avg}</div><div class="muted">Note moy.</div></div>
+              <div class="card" style="padding:12px;"><div class="stat">${familyStats.uniqueClients}</div><div class="muted">Clients</div></div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="section-title">Fiche produit</div>
+            <input id="edit-product-family" class="field" value="${escapeHtml(p.family)}" placeholder="Famille produit" />
+            <input id="edit-product-name" class="field" value="${escapeHtml(p.name)}" placeholder="Nom de la cuvée" style="margin-top:10px;" />
+            <input id="edit-product-vintage" class="field" value="${escapeHtml(p.vintage)}" placeholder="Millésime" style="margin-top:10px;" />
+            <input id="edit-product-color" class="field" value="${escapeHtml(p.color)}" placeholder="Couleur / type" style="margin-top:10px;" />
+            <textarea id="edit-product-tech" class="field" style="margin-top:10px;" placeholder="Fiche technique">${escapeHtml(p.techSheet)}</textarea>
+            <textarea id="edit-product-notes" class="field" style="margin-top:10px;" placeholder="Notes internes">${escapeHtml(p.notes)}</textarea>
+            <label style="display:flex;align-items:center;gap:8px;margin-top:10px;font-size:14px;">
+              <input id="edit-product-active" type="checkbox" ${p.active ? "checked" : ""} />
+              Produit actif
+            </label>
+            <button class="btn full" style="margin-top:10px;" onclick="saveProductEdits()">Enregistrer la fiche produit</button>
+          </div>
+
+          <div class="card">
+            <div class="section-title">Millésimes liés</div>
+            <div class="list">
+              ${[p, ...related].map(x => `
+                <div class="item" onclick="openProduct(${x.id})">
+                  <div class="row">
+                    <div>
+                      <div class="name">${escapeHtml(x.name)} ${escapeHtml(x.vintage)}</div>
+                      <div class="meta">${escapeHtml(x.color)}</div>
+                    </div>
+                    ${wineBadge(x.active)}
+                  </div>
+                </div>
+              `).join("")}
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="section-title">Retours clients</div>
+            <div class="list">
+              ${stats.tastings.length ? stats.tastings.map(t => {
+                const c = clientById(t.clientId);
+                return `
+                  <div class="item" onclick="openClient(${t.clientId})">
+                    <div class="name">${escapeHtml(c ? c.name : t.clientName)}</div>
+                    <div class="meta">${fmtDate(t.date)} · ${"★".repeat(t.rating)}${t.liked ? " · aimé" : ""}</div>
+                    <div class="small" style="margin-top:8px;">${escapeHtml(t.comment || "")}</div>
+                  </div>
+                `;
+              }).join("") : `<div class="muted">Aucun retour pour l’instant.</div>`}
             </div>
           </div>
         </div>
@@ -434,7 +1084,7 @@
       return `
         <div class="header">
           <h1 class="title">Relances</h1>
-          <div class="subtitle">${clients.filter(c => c.nextFollowUp).length} clients suivis</div>
+          <div class="subtitle">${data.clients.filter(c => c.nextFollowUp).length} client(s) suivis</div>
         </div>
         <div class="content">
           <div class="card" style="background:#fef2f2;border-color:#fecaca;">
@@ -443,12 +1093,12 @@
           </div>
 
           <div class="list">
-            ${urgent.map(c => `
+            ${urgent.length ? urgent.map(c => `
               <div class="card">
                 <div class="row">
                   <div>
-                    <div class="name">${c.name}</div>
-                    <div class="meta">${c.city} · ${fmtDate(c.nextFollowUp)}</div>
+                    <div class="name">${escapeHtml(c.name)}</div>
+                    <div class="meta">${escapeHtml(c.city)} · ${fmtDate(c.nextFollowUp)}</div>
                   </div>
                   <span class="badge prospect">Urgent</span>
                 </div>
@@ -459,18 +1109,18 @@
                   <button class="btn secondary" onclick="postponeFollowUp(${c.id},7)">Reporter</button>
                 </div>
               </div>
-            `).join("") || `<div class="muted">Aucune relance urgente.</div>`}
+            `).join("") : `<div class="muted">Aucune relance urgente.</div>`}
           </div>
 
           <div class="card">
             <div class="section-title">Bientôt</div>
             <div class="list">
-              ${soon.map(c => `
+              ${soon.length ? soon.map(c => `
                 <div class="item" onclick="openClient(${c.id})">
-                  <div class="name">${c.name}</div>
-                  <div class="meta">${c.city} · ${fmtDate(c.nextFollowUp)}</div>
+                  <div class="name">${escapeHtml(c.name)}</div>
+                  <div class="meta">${escapeHtml(c.city)} · ${fmtDate(c.nextFollowUp)}</div>
                 </div>
-              `).join("") || `<div class="muted">Aucune relance proche.</div>`}
+              `).join("") : `<div class="muted">Aucune relance proche.</div>`}
             </div>
           </div>
         </div>
@@ -485,7 +1135,7 @@
           <div class="subtitle">Vue simulée</div>
         </div>
         <div class="content">
-          <input class="field" placeholder="Zone, ville, client..." value="${search.replace(/"/g,'&quot;')}" oninput="setSearch(this.value)" />
+          <input class="field" placeholder="Zone, ville, client..." value="${escapeHtml(search)}" oninput="setSearch(this.value)" />
           <div class="mapbox">
             ${list.map((c, i) => `
               <button class="pin ${c.status}" style="top:${18 + ((i*13)%65)}%;left:${15 + ((i*17)%65)}%;" onclick="openClient(${c.id})"></button>
@@ -500,41 +1150,119 @@
     }
 
     function tourView() {
-      const tour = clients.filter(c => [1,2,3,4].includes(c.id));
       return `
         <div class="header">
           <h1 class="title">Tournée du jour</h1>
-          <div class="subtitle">4 étapes · relances incluses</div>
+          <div class="subtitle">${data.tourList.length} étape(s) · ordre libre</div>
         </div>
         <div class="content">
           <div class="card dark">
             <div class="subtitle">Parcours du jour</div>
-            <div style="font-size:24px;font-weight:700;margin-top:6px;">Montpellier / Hérault</div>
-            <a class="btn secondary" style="margin-top:12px;display:inline-block;text-decoration:none;" target="_blank" href="https://www.google.com/maps">GPS</a>
+            <div style="font-size:24px;font-weight:700;margin-top:6px;">Organisation libre</div>
+            <div class="toolbar" style="margin-top:12px;">
+              <button class="btn secondary" onclick="go('addTour')">+ Ajouter un client</button>
+              <a class="btn secondary" target="_blank" href="https://www.google.com/maps">GPS</a>
+            </div>
           </div>
 
-          ${tour.map((c, i) => `
-            <div class="card">
-              <div class="row">
-                <div class="row" style="justify-content:flex-start;">
-                  <div style="width:32px;height:32px;border-radius:999px;background:#111;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;">${i+1}</div>
+          ${data.tourList.map((t, i) => {
+            const c = clientById(t.id);
+            if (!c) return "";
+            return `
+              <div class="card">
+                <div class="row">
                   <div>
-                    <div class="name">${c.name}</div>
-                    <div class="meta">${c.city} · ${c.type}</div>
+                    <div class="name">${i + 1}. ${escapeHtml(c.name)}</div>
+                    <div class="meta">${escapeHtml(c.city)} · ${escapeHtml(c.type)}</div>
                   </div>
+                  <input class="field mono" style="width:90px;padding:10px 12px;" value="${escapeHtml(t.time || "")}" placeholder="heure" onchange="updateTourTime(${i}, this.value)" />
                 </div>
-                <span class="badge ${c.nextFollowUp && c.nextFollowUp <= today ? 'prospect' : 'client'}">${c.nextFollowUp && c.nextFollowUp <= today ? 'Relance' : 'Visite'}</span>
+                <div class="grid2" style="margin-top:12px;">
+                  <button class="btn secondary" onclick="moveUp(${i})">⬆️ Monter</button>
+                  <button class="btn secondary" onclick="moveDown(${i})">⬇️ Descendre</button>
+                  <button class="btn" onclick="markVisited(${c.id},21)">Visité</button>
+                  <button class="btn danger" onclick="removeFromTour(${c.id})">Supprimer</button>
+                </div>
+                <div class="grid2" style="margin-top:10px;">
+                  <a class="btn secondary" href="${c.phone ? `tel:${c.phone}` : '#'}">Appeler</a>
+                  <a class="btn secondary" target="_blank" href="${mapsUrl(c.address)}">Itinéraire</a>
+                </div>
               </div>
-              <div class="grid2" style="margin-top:12px;">
-                <a class="btn secondary" href="${c.phone ? `tel:${c.phone}` : '#'}">Appeler</a>
-                <a class="btn secondary" target="_blank" href="${mapsUrl(c.address)}">Itinéraire</a>
-                <button class="btn" onclick="markVisited(${c.id},21)">Visité</button>
-                <button class="btn secondary" onclick="openClient(${c.id})">Note</button>
-              </div>
-            </div>
-          `).join("")}
+            `;
+          }).join("")}
         </div>
       `;
+    }
+
+    function addTourView() {
+      const ids = new Set(data.tourList.map(t => t.id));
+      const list = data.clients.filter(c => !ids.has(c.id));
+      return `
+        <div class="header">
+          <div class="row">
+            <button class="btn soft" onclick="go('tour')">Retour</button>
+            <div style="text-align:right;">
+              <h1 class="title" style="font-size:20px;">Ajouter à la tournée</h1>
+              <div class="subtitle">${list.length} disponible(s)</div>
+            </div>
+          </div>
+        </div>
+        <div class="content">
+          ${list.map(c => `
+            <div class="item" onclick="addClientToTour(${c.id})">
+              <div class="name">${escapeHtml(c.name)}</div>
+              <div class="meta">${escapeHtml(c.city)} · ${escapeHtml(c.type)}</div>
+            </div>
+          `).join("") || `<div class="muted">Tous les clients sont déjà dans la tournée.</div>`}
+        </div>
+      `;
+    }
+
+    function settingsView() {
+      return `
+        <div class="header">
+          <h1 class="title">Sauvegarde / export</h1>
+          <div class="subtitle">Lire tes données même sans l’app</div>
+        </div>
+        <div class="content">
+          <div class="card">
+            <div class="section-title">Sauvegarde locale</div>
+            <div class="small">Les modifications sont conservées sur cet appareil grâce au stockage local du navigateur.</div>
+            <div class="toolbar" style="margin-top:12px;">
+              <button class="btn info" onclick="saveData(); alert('Données enregistrées sur cet appareil.')">Sauvegarder maintenant</button>
+              <button class="btn danger" onclick="resetData()">Réinitialiser</button>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="section-title">Exports</div>
+            <div class="list">
+              <button class="btn soft" onclick="exportJSON()">Exporter sauvegarde JSON</button>
+              <button class="btn soft" onclick="exportClientsCSV()">Exporter clients CSV</button>
+              <button class="btn soft" onclick="exportProductsCSV()">Exporter produits CSV</button>
+              <button class="btn soft" onclick="exportReadableTXT()">Exporter document lisible TXT</button>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="section-title">Ce que fait cette version</div>
+            <div class="small">
+              - sauvegarde locale sur ce téléphone / navigateur<br>
+              - export de sécurité<br>
+              - export lisible hors app<br>
+              - produits, millésimes, archivage, dégustations
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function escapeHtml(str) {
+      return String(str ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
     }
 
     function nav(current) {
@@ -542,8 +1270,9 @@
         ["home","Accueil"],
         ["clients","Clients"],
         ["relances","Relances"],
-        ["map","Carte"],
-        ["tour","Tournée"]
+        ["products","Vins"],
+        ["tour","Tournée"],
+        ["settings","Sauve"]
       ];
       return `
         <div class="nav">
@@ -554,35 +1283,50 @@
       `;
     }
 
-    function go(next) {
-      screen = next;
-      render();
-    }
-
-    function setSearch(v) {
-      search = v;
-      render();
-    }
-
     function render() {
       let html = "";
       if (screen === "home") html = homeView();
       if (screen === "clients") html = clientsView();
       if (screen === "client") html = clientView();
       if (screen === "relances") html = relancesView();
-      if (screen === "map") html = mapView();
+      if (screen === "products") html = productsView();
+      if (screen === "product") html = productView();
       if (screen === "tour") html = tourView();
+      if (screen === "addTour") html = addTourView();
+      if (screen === "map") html = mapView();
+      if (screen === "settings") html = settingsView();
 
-      document.getElementById("app").innerHTML = html + nav(screen === "client" ? "clients" : screen);
+      document.getElementById("app").innerHTML =
+        html + nav(screen === "client" ? "clients" : screen === "product" ? "products" : screen === "addTour" ? "tour" : screen);
     }
 
     window.go = go;
     window.openClient = openClient;
+    window.openProduct = openProduct;
+    window.setSearch = setSearch;
+    window.setProductFilter = setProductFilter;
     window.markVisited = markVisited;
     window.postponeFollowUp = postponeFollowUp;
     window.addNote = addNote;
     window.addOrder = addOrder;
-    window.setSearch = setSearch;
+    window.addTasting = addTasting;
+    window.addClientToTour = addClientToTour;
+    window.removeFromTour = removeFromTour;
+    window.moveUp = moveUp;
+    window.moveDown = moveDown;
+    window.updateTourTime = updateTourTime;
+    window.saveClientEdits = saveClientEdits;
+    window.saveProductEdits = saveProductEdits;
+    window.duplicateProduct = duplicateProduct;
+    window.createNextVintage = createNextVintage;
+    window.toggleArchiveProduct = toggleArchiveProduct;
+    window.createNewProduct = createNewProduct;
+    window.exportJSON = exportJSON;
+    window.exportClientsCSV = exportClientsCSV;
+    window.exportProductsCSV = exportProductsCSV;
+    window.exportReadableTXT = exportReadableTXT;
+    window.resetData = resetData;
+    window.saveData = saveData;
 
     render();
   </script>
