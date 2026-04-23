@@ -14,8 +14,6 @@
       --border:#e5e7eb;
       --soft:#f3f4f6;
       --accent:#111111;
-      --ok:#16a34a;
-      --warn:#d97706;
       --danger:#dc2626;
       --info:#2563eb;
     }
@@ -23,37 +21,21 @@
     html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
     body{padding-bottom:84px}
     .app{max-width:430px;margin:0 auto;min-height:100vh;background:var(--bg)}
-    .header{
-      position:sticky;top:0;z-index:20;
-      background:rgba(255,255,255,.96);
-      backdrop-filter:blur(12px);
-      border-bottom:1px solid var(--border);
-      padding:14px 16px
-    }
-    .title{margin:0;font-size:22px;font-weight:800;letter-spacing:-.02em}
+    .header{position:sticky;top:0;z-index:20;background:rgba(255,255,255,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:14px 16px}
+    .title{margin:0;font-size:22px;font-weight:800}
     .subtitle{margin-top:4px;color:var(--muted);font-size:12px}
     .content{padding:16px;display:flex;flex-direction:column;gap:16px}
-    .card{
-      background:var(--card);
-      border:1px solid var(--border);
-      border-radius:22px;
-      padding:16px;
-      box-shadow:0 1px 0 rgba(0,0,0,.02);
-    }
-    .dark{
-      background:#111;color:#fff;border-color:#111
-    }
+    .card{background:var(--card);border:1px solid var(--border);border-radius:22px;padding:16px}
+    .dark{background:#111;color:#fff;border-color:#111}
     .dark .subtitle,.dark .muted{color:#d1d5db}
-    .section-title{
-      font-size:16px;font-weight:800;margin:0 0 10px 0;letter-spacing:-.01em
-    }
+    .section-title{font-size:16px;font-weight:800;margin:0 0 10px 0}
     .muted{color:var(--muted);font-size:12px}
     .small{font-size:13px}
     .name{font-size:15px;font-weight:700}
     .row{display:flex;align-items:center;justify-content:space-between;gap:12px}
     .grid2{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
     .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
-    .stat{font-size:28px;font-weight:800;letter-spacing:-.03em}
+    .stat{font-size:28px;font-weight:800}
     .field, select, textarea{
       width:100%;
       padding:12px 14px;
@@ -73,18 +55,11 @@
     .btn.full{width:100%}
     .btn.secondary{background:#fff;color:#111;border:1px solid var(--border)}
     .btn.soft{background:var(--soft);color:#111}
-    .btn.warn{background:#fff7ed;color:#9a3412;border:1px solid #fdba74}
     .btn.danger{background:#fef2f2;color:#b91c1c;border:1px solid #fecaca}
     .btn.info{background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe}
     .list{display:flex;flex-direction:column;gap:10px}
-    .item{
-      background:#fff;border:1px solid var(--border);border-radius:18px;
-      padding:14px;cursor:pointer
-    }
-    .badge{
-      display:inline-flex;align-items:center;justify-content:center;
-      padding:6px 10px;border-radius:999px;font-size:12px;font-weight:700
-    }
+    .item{background:#fff;border:1px solid var(--border);border-radius:18px;padding:14px;cursor:pointer}
+    .badge{display:inline-flex;align-items:center;justify-content:center;padding:6px 10px;border-radius:999px;font-size:12px;font-weight:700}
     .client{background:#dcfce7;color:#166534}
     .prospect{background:#fef3c7;color:#92400e}
     .inactive{background:#e5e7eb;color:#374151}
@@ -95,10 +70,7 @@
     .dot{width:10px;height:10px;border-radius:50%;background:#111;margin-top:5px;flex:0 0 auto}
     .toolbar{display:flex;flex-wrap:wrap;gap:8px}
     .mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
-    .mapbox{
-      position:relative;height:320px;border-radius:22px;overflow:hidden;
-      background:linear-gradient(135deg,#d1d5db,#e5e7eb);border:1px solid var(--border)
-    }
+    .mapbox{position:relative;height:320px;border-radius:22px;overflow:hidden;background:linear-gradient(135deg,#d1d5db,#e5e7eb);border:1px solid var(--border)}
     .mapgrid{
       position:absolute;inset:0;opacity:.35;
       background-image:
@@ -106,41 +78,30 @@
         linear-gradient(rgba(255,255,255,.75) 1px, transparent 1px);
       background-size:38px 38px;
     }
-    .pin{
-      position:absolute;width:18px;height:18px;border-radius:50%;
-      border:4px solid #fff;box-shadow:0 4px 10px rgba(0,0,0,.15)
-    }
+    .pin{position:absolute;width:18px;height:18px;border-radius:50%;border:4px solid #fff;box-shadow:0 4px 10px rgba(0,0,0,.15)}
     .pin.client{background:#22c55e}
     .pin.prospect{background:#f59e0b}
     .pin.inactive{background:#6b7280}
-    .nav{
-      position:fixed;left:0;right:0;bottom:0;background:#fff;
-      border-top:1px solid var(--border);padding:10px 8px;z-index:25
-    }
-    .nav-inner{
-      max-width:430px;margin:0 auto;display:grid;grid-template-columns:repeat(7,1fr);gap:6px
-    }
-    .tab{
-      appearance:none;border:none;background:transparent;border-radius:16px;
-      padding:10px 4px;font-size:10px;color:var(--muted);cursor:pointer
-    }
+    .nav{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid var(--border);padding:10px 8px;z-index:25}
+    .nav-inner{max-width:430px;margin:0 auto;display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+    .tab{appearance:none;border:none;background:transparent;border-radius:16px;padding:10px 4px;font-size:10px;color:var(--muted);cursor:pointer}
     .tab.active{background:#111;color:#fff;font-weight:700}
     .order-line{display:grid;grid-template-columns:1fr 90px;gap:10px;align-items:center;margin-top:10px}
     .star-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-    .star-btn{
-      font-size:24px;line-height:1;background:transparent;border:none;cursor:pointer;padding:2px
-    }
+    .star-btn{font-size:24px;line-height:1;background:transparent;border:none;cursor:pointer;padding:2px}
     .star-off{opacity:.25}
     .stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
     .stats-card{padding:12px;border:1px solid var(--border);border-radius:18px;background:#fafafa;cursor:pointer}
     .split-title{display:flex;align-items:center;justify-content:space-between;gap:8px}
+    .suggestions{display:flex;flex-direction:column;gap:8px;margin-top:8px}
+    .suggestion{background:#fff;border:1px solid var(--border);border-radius:14px;padding:10px 12px;cursor:pointer;font-size:13px}
   </style>
 </head>
 <body>
 <div id="app" class="app"></div>
 
 <script>
-const STORAGE_KEY = "crm_vin_vfinal_orders";
+const STORAGE_KEY = "crm_vin_clients_create_v1";
 const today = new Date().toISOString().slice(0,10);
 
 const defaultData = {
@@ -205,66 +166,6 @@ const defaultData = {
         { id: 2003, date: "2026-04-02", productId: 4, rating: 4, liked: true, comment: "Belle fraîcheur" },
         { id: 2004, date: "2026-04-02", productId: 3, rating: 4, liked: true, comment: "Plaît bien" }
       ]
-    },
-    {
-      id: 3,
-      name: "La Cave d'Occitanie",
-      type: "Caviste",
-      tariff: "Caviste",
-      status: "prospect",
-      city: "Baillargues",
-      zone: "Hérault",
-      address: "259 Rue Jean Baptiste Calvignac, 34670 Baillargues",
-      phone: "0467690255",
-      email: "contact@cavedoccitanie.fr",
-      contact: "Stéphane Lebesgue",
-      notes: "Continuer de passer pour trouver une date.",
-      lastVisit: "2026-04-10",
-      nextFollowUp: "2026-05-01",
-      history: [
-        { date: "2026-03-20", type: "appel", text: "Échange avec le caviste" },
-        { date: "2026-04-10", type: "visite", text: "Passage en cave, à relancer" }
-      ],
-      orders: [],
-      tastings: [
-        { id: 2005, date: "2026-04-10", productId: 3, rating: 2, liked: false, comment: "Prix trop élevé" }
-      ]
-    },
-    {
-      id: 4,
-      name: "La nona",
-      type: "CHR",
-      tariff: "CHR",
-      status: "client",
-      city: "Faugères",
-      zone: "Hérault",
-      address: "880 Rte de Pézenas, 34600 Faugères",
-      phone: "",
-      email: "",
-      contact: "Maxime",
-      notes: "Jeune, sympa, commande régulièrement.",
-      lastVisit: "2026-04-18",
-      nextFollowUp: "2026-05-09",
-      history: [
-        { date: "2026-04-18", type: "visite", text: "Passage, bon échange" },
-        { date: "2026-04-05", type: "commande", text: "Commande réassort" }
-      ],
-      orders: [
-        {
-          id: 1002,
-          date: "2026-04-05",
-          status: "pending",
-          comment: "",
-          items: [
-            { productId: 3, qty: 12 },
-            { productId: 4, qty: 6 }
-          ]
-        }
-      ],
-      tastings: [
-        { id: 2006, date: "2026-04-18", productId: 1, rating: 4, liked: true, comment: "Marche bien" },
-        { id: 2007, date: "2026-04-18", productId: 3, rating: 5, liked: true, comment: "Très vendeur" }
-      ]
     }
   ],
   products: [
@@ -279,9 +180,7 @@ const defaultData = {
   ],
   tourList: [
     { id: 1, time: "09:30" },
-    { id: 2, time: "11:00" },
-    { id: 3, time: "14:15" },
-    { id: 4, time: "16:30" }
+    { id: 2, time: "11:00" }
   ]
 };
 
@@ -292,6 +191,7 @@ let currentScreen = { name: "home", params: {} };
 let modal = null;
 let tastingDraftRating = 0;
 let ordersDateFilter = "";
+let searchTimer = null;
 
 function loadData() {
   try {
@@ -337,11 +237,22 @@ function wineBadge(active){
   return `<span class="badge ${active ? "activeWine" : "archivedWine"}">${active ? "actif" : "archivé"}</span>`;
 }
 
+function setSearchStable(value){
+  clearTimeout(searchTimer);
+  search = value;
+  searchTimer = setTimeout(() => render(), 80);
+}
 function filteredClients() {
   return data.clients.filter(c => {
     const hay = `${c.name} ${c.city} ${c.type} ${c.tariff} ${c.status} ${c.notes}`.toLowerCase();
     return hay.includes(search.toLowerCase());
   });
+}
+function clientSuggestions() {
+  if (!search.trim()) return [];
+  return data.clients
+    .filter(c => c.name.toLowerCase().includes(search.toLowerCase()) || c.city.toLowerCase().includes(search.toLowerCase()))
+    .slice(0,5);
 }
 function filteredProducts() {
   return data.products.filter(p => {
@@ -378,7 +289,6 @@ function filteredOrders() {
 }
 
 function mapsUrl(address){ return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`; }
-function wazeUrl(address){ return `https://waze.com/ul?q=${encodeURIComponent(address)}&navigate=yes`; }
 function openTourMaps(){
   const clients = data.tourList.map(t => clientById(t.id)).filter(Boolean);
   if (!clients.length) return alert("Aucun client dans la tournée.");
@@ -392,9 +302,48 @@ function openTourMaps(){
   window.open(url, "_blank");
 }
 
-function setSearch(v){ search = v; render(); }
 function setProductFilter(v){ productFilter = v; render(); }
 function setOrdersDateFilter(v){ ordersDateFilter = v; render(); }
+
+function createClient() {
+  const name = document.getElementById("new-client-name").value.trim();
+  const type = document.getElementById("new-client-type").value;
+  const tariff = document.getElementById("new-client-tariff").value;
+  const status = document.getElementById("new-client-status").value;
+  const contact = document.getElementById("new-client-contact").value.trim();
+  const phone = document.getElementById("new-client-phone").value.trim();
+  const email = document.getElementById("new-client-email").value.trim();
+  const address = document.getElementById("new-client-address").value.trim();
+  const city = document.getElementById("new-client-city").value.trim();
+  const zone = document.getElementById("new-client-zone").value.trim();
+  const notes = document.getElementById("new-client-notes").value.trim();
+
+  if (!name) return alert("Le nom du client est obligatoire.");
+
+  const newClient = {
+    id: nextId(data.clients),
+    name,
+    type,
+    tariff,
+    status,
+    city,
+    zone,
+    address,
+    phone,
+    email,
+    contact,
+    notes,
+    lastVisit: "",
+    nextFollowUp: "",
+    history: [{ date: today, type: "création", text: "Fiche créée manuellement" }],
+    orders: [],
+    tastings: []
+  };
+
+  data.clients.unshift(newClient);
+  saveData();
+  pushScreen("client", { id: newClient.id });
+}
 
 function saveClientEdits(id){
   const c = clientById(id);
@@ -409,7 +358,7 @@ function saveClientEdits(id){
   c.tariff = document.getElementById("edit-client-tariff").value;
   c.status = document.getElementById("edit-client-status").value;
   c.notes = document.getElementById("edit-client-notes").value.trim();
-  saveData(); alert("Fiche client mise à jour."); render();
+  saveData(); render();
 }
 
 function setManualFollowUp(id){
@@ -443,16 +392,6 @@ function addFollowUpFromRelances(){
   saveData(); render();
 }
 
-function addClientNote(id){
-  const ta = document.getElementById("new-note");
-  const text = ta.value.trim();
-  if (!text) return;
-  const c = clientById(id);
-  c.history.unshift({ date: today, type: "note", text });
-  ta.value = "";
-  saveData(); render();
-}
-
 function setTastingDraftRating(value){ tastingDraftRating = value; render(); }
 function addTasting(id){
   const productId = Number(document.getElementById("taste-product").value);
@@ -478,8 +417,6 @@ function addOrder(id){
   const comment = document.getElementById("order-comment").value.trim();
   if (!items.length) return alert("Aucune quantité renseignée.");
   c.orders.unshift({ id: Date.now(), date: today, status: "pending", comment, items });
-  const readable = items.map(i => `${productById(i.productId)?.name || "Vin"} x ${i.qty}`).join(", ");
-  c.history.unshift({ date: today, type: "commande", text: readable });
   saveData(); render();
 }
 function toggleOrderStatus(clientId, orderId){
@@ -488,6 +425,29 @@ function toggleOrderStatus(clientId, orderId){
   o.status = o.status === "sent" ? "pending" : "sent";
   saveData(); render();
 }
+function editOrder(clientId, orderId){
+  const c = clientById(clientId);
+  const o = c.orders.find(x => x.id === orderId);
+  const newComment = prompt("Modifier le commentaire :", o.comment || "");
+  if (newComment !== null) o.comment = newComment;
+  o.items.forEach(item => {
+    const newQty = prompt("Modifier quantité pour " + (productById(item.productId)?.name || "vin"), item.qty);
+    if (newQty !== null) item.qty = Number(newQty) || item.qty;
+  });
+  saveData(); render();
+}
+
+function addClientToTour(clientId){
+  if (!data.tourList.find(t => t.id === Number(clientId))) {
+    data.tourList.push({ id: Number(clientId), time: "" });
+    saveData();
+  }
+  pushScreen("tour");
+}
+function removeFromTour(clientId){ data.tourList = data.tourList.filter(t => t.id !== Number(clientId)); saveData(); render(); }
+function moveTourUp(index){ if (index <= 0) return; [data.tourList[index - 1], data.tourList[index]] = [data.tourList[index], data.tourList[index - 1]]; saveData(); render(); }
+function moveTourDown(index){ if (index >= data.tourList.length - 1) return; [data.tourList[index + 1], data.tourList[index]] = [data.tourList[index], data.tourList[index + 1]]; saveData(); render(); }
+function updateTourTime(index, value){ data.tourList[index].time = value; saveData(); }
 
 function saveProductEdits(id){
   const p = productById(id);
@@ -498,7 +458,7 @@ function saveProductEdits(id){
   p.techSheet = document.getElementById("edit-product-tech").value.trim();
   p.notes = document.getElementById("edit-product-notes").value.trim();
   p.active = document.getElementById("edit-product-active").checked;
-  saveData(); alert("Produit mis à jour."); render();
+  saveData(); render();
 }
 function duplicateProduct(id){
   const p = productById(id);
@@ -521,7 +481,11 @@ function createNextVintage(id){
   data.products.unshift(copy);
   saveData(); pushScreen("product", { id: copy.id });
 }
-function toggleArchiveProduct(id){ const p = productById(id); p.active = !p.active; saveData(); render(); }
+function toggleArchiveProduct(id){
+  const p = productById(id);
+  p.active = !p.active;
+  saveData(); render();
+}
 function createProduct(){
   const family = prompt("Nom de la cuvée / famille ?");
   if (!family) return;
@@ -544,43 +508,14 @@ function productStats(productId, includeFamily = false){
     });
   });
   const ratings = tastingRows.map(t => t.rating);
-  return {
-    tastings: tastingRows,
-    orders: orderedRows,
-    avg: ratings.length ? (ratings.reduce((a,b)=>a+b,0) / ratings.length).toFixed(1) : "—"
-  };
+  return { tastings: tastingRows, orders: orderedRows, avg: ratings.length ? (ratings.reduce((a,b)=>a+b,0) / ratings.length).toFixed(1) : "—" };
 }
 function openProductClients(productId, mode, includeFamily = false){ openModal("productClients", { productId, mode, includeFamily }); }
-
-function addClientToTour(clientId){
-  if (!data.tourList.find(t => t.id === Number(clientId))) { data.tourList.push({ id: Number(clientId), time: "" }); saveData(); }
-  pushScreen("tour");
-}
-function removeFromTour(clientId){ data.tourList = data.tourList.filter(t => t.id !== Number(clientId)); saveData(); render(); }
-function moveTourUp(index){ if (index <= 0) return; [data.tourList[index - 1], data.tourList[index]] = [data.tourList[index], data.tourList[index - 1]]; saveData(); render(); }
-function moveTourDown(index){ if (index >= data.tourList.length - 1) return; [data.tourList[index + 1], data.tourList[index]] = [data.tourList[index], data.tourList[index + 1]]; saveData(); render(); }
-function updateTourTime(index, value){ data.tourList[index].time = value; saveData(); }
-function availableTourClients(){ const ids = new Set(data.tourList.map(t => t.id)); return data.clients.filter(c => !ids.has(c.id)); }
 
 function exportJSON(){ const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" }); downloadBlob(blob, `crm-vin-${today}.json`); }
 function exportClientsCSV(){ const rows = [["id","nom","type","tarif","statut","ville","zone","contact","telephone","email","adresse","derniere_visite","prochaine_relance","notes"]]; data.clients.forEach(c => rows.push([c.id,c.name,c.type,c.tariff,c.status,c.city,c.zone,c.contact,c.phone,c.email,c.address,c.lastVisit,c.nextFollowUp,c.notes])); downloadBlob(new Blob([toCSV(rows)], { type: "text/csv;charset=utf-8;" }), `clients-${today}.csv`); }
 function exportProductsCSV(){ const rows = [["id","famille","nom","millesime","couleur","actif","lie_a","notes","fiche_technique"]]; data.products.forEach(p => rows.push([p.id,p.family,p.name,p.vintage,p.color,p.active ? "oui" : "non",p.linkedTo || "",p.notes,p.techSheet])); downloadBlob(new Blob([toCSV(rows)], { type: "text/csv;charset=utf-8;" }), `produits-${today}.csv`); }
-function exportReadableTXT(){
-  let txt = `CRM VIN - EXPORT LISIBLE - ${today}\n\n`;
-  data.clients.forEach(c => {
-    txt += `=== ${c.name} ===\nType: ${c.type} | Tarif: ${c.tariff} | Statut: ${c.status}\nVille: ${c.city} | Zone: ${c.zone}\nContact: ${c.contact}\nTéléphone: ${c.phone}\nEmail: ${c.email}\nAdresse: ${c.address}\nDernière visite: ${c.lastVisit}\nProchaine relance: ${c.nextFollowUp}\nNotes: ${c.notes}\nHistorique:\n`;
-    (c.history || []).forEach(h => txt += ` - ${h.date} | ${h.type} | ${h.text}\n`);
-    txt += `Dégustations:\n`;
-    (c.tastings || []).forEach(t => { const p = productById(t.productId); txt += ` - ${t.date} | ${p ? p.name + " " + p.vintage : "vin"} | ${"★".repeat(t.rating)} | ${t.liked ? "aimé" : "non"} | ${t.comment || ""}\n`; });
-    txt += `Commandes:\n`;
-    (c.orders || []).forEach(o => {
-      txt += ` - ${o.date} | ${o.status === "sent" ? "transmise" : "non transmise"}\n`;
-      o.items.forEach(i => { const p = productById(i.productId); txt += `   * ${p ? p.name + " " + p.vintage : "vin"} x ${i.qty}\n`; });
-    });
-    txt += `\n`;
-  });
-  downloadBlob(new Blob([txt], { type: "text/plain;charset=utf-8;" }), `crm-vin-lisible-${today}.txt`);
-}
+function exportReadableTXT(){ const blob = new Blob(["Export lisible CRM Vin"], { type: "text/plain;charset=utf-8;" }); downloadBlob(blob, `crm-vin-lisible-${today}.txt`); }
 function toCSV(rows){ return rows.map(row => row.map(v => `"${String(v ?? "").replace(/"/g,'""')}"`).join(";")).join("\n"); }
 function downloadBlob(blob, filename){ const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = filename; a.click(); URL.revokeObjectURL(a.href); }
 function resetData(){ if (!confirm("Réinitialiser les données locales ?")) return; data = structuredClone(defaultData); saveData(); pushScreen("home"); }
@@ -601,25 +536,22 @@ function screenHeader(title, subtitle = "", back = null){
 
 function renderHome(){
   const urgent = dueToday();
-  const activeWines = data.products.filter(p => p.active).length;
   const pendingOrders = allOrdersFlattened().filter(o => o.status === "pending").length;
   return `
-    ${screenHeader("Bonjour 👋","Usage terrain · relances · vins · tournée")}
+    ${screenHeader("Bonjour 👋","Usage terrain")}
     <div class="content">
-      <div class="card dark">
-        <div class="subtitle">Aujourd’hui</div>
-        <div style="font-size:28px;font-weight:800;margin-top:6px">${data.tourList.length} étape(s) prévues</div>
-        <div class="subtitle" style="margin-top:6px">${urgent.length} relance(s) urgente(s) · ${activeWines} vin(s) actifs</div>
-        <div class="grid2" style="margin-top:14px">
-          <button class="btn secondary" onclick="pushScreen('tour')">Tournée</button>
-          <button class="btn secondary" onclick="pushScreen('relances')">Relances</button>
-        </div>
+      <div class="grid3">
+        <div class="card" onclick="pushScreen('clients')"><div class="stat">${data.clients.length}</div><div class="muted">Clients</div></div>
+        <div class="card" onclick="pushScreen('relances')"><div class="stat">${urgent.length}</div><div class="muted">Relances</div></div>
+        <div class="card" onclick="pushScreen('orders')"><div class="stat">${pendingOrders}</div><div class="muted">Cmd</div></div>
       </div>
 
-      <div class="grid3">
-        <div class="card"><div class="stat">${data.clients.filter(c => c.status === 'client').length}</div><div class="muted">Clients</div></div>
-        <div class="card"><div class="stat">${urgent.length}</div><div class="muted">Relances</div></div>
-        <div class="card"><div class="stat">${pendingOrders}</div><div class="muted">Cmd en cours</div></div>
+      <div class="card">
+        <div class="section-title">Actions rapides</div>
+        <div class="grid2">
+          <button class="btn" onclick="pushScreen('clientCreate')">+ Nouveau client</button>
+          <button class="btn secondary" onclick="pushScreen('tour')">Tournée</button>
+        </div>
       </div>
     </div>
   `;
@@ -627,10 +559,15 @@ function renderHome(){
 
 function renderClients(){
   const list = filteredClients();
+  const suggestions = clientSuggestions();
   return `
     ${screenHeader("Clients & prospects", `${list.length} fiche(s)`)}
     <div class="content">
-      <input class="field" placeholder="Rechercher un client, une ville..." value="${esc(search)}" oninput="setSearch(this.value)" />
+      <div class="toolbar">
+        <button class="btn" onclick="pushScreen('clientCreate')">+ Nouveau client</button>
+      </div>
+      <input class="field" placeholder="Rechercher un client, une ville..." value="${esc(search)}" oninput="setSearchStable(this.value)" />
+      ${suggestions.length ? `<div class="suggestions">${suggestions.map(c => `<div class="suggestion" onclick="pushScreen('client',{id:${c.id}})">${esc(c.name)} · ${esc(c.city)}</div>`).join("")}</div>` : ``}
       <div class="list">
         ${list.map(c => `
           <div class="item" onclick="pushScreen('client',{id:${c.id}})">
@@ -638,12 +575,46 @@ function renderClients(){
               <div style="min-width:0">
                 <div class="name">${esc(c.name)}</div>
                 <div class="muted">${esc(c.city)} · ${esc(c.type)} · Tarif ${esc(c.tariff)}</div>
-                <div class="small" style="margin-top:8px">${esc(c.notes || "")}</div>
               </div>
               ${statusBadge(c.status)}
             </div>
           </div>
         `).join("")}
+      </div>
+    </div>
+  `;
+}
+
+function renderClientCreate(){
+  return `
+    ${screenHeader("Nouveau client","Création manuelle", "history.back()")}
+    <div class="content">
+      <div class="card">
+        <div class="section-title">Créer une fiche client</div>
+        <input id="new-client-name" class="field" placeholder="Nom établissement *" />
+        <select id="new-client-type" class="field" style="margin-top:10px">
+          <option>Caviste</option>
+          <option>CHR</option>
+          <option>Grossiste</option>
+        </select>
+        <select id="new-client-tariff" class="field" style="margin-top:10px">
+          <option>Caviste</option>
+          <option>CHR</option>
+          <option>Grossiste</option>
+        </select>
+        <select id="new-client-status" class="field" style="margin-top:10px">
+          <option value="prospect">prospect</option>
+          <option value="client">client</option>
+          <option value="inactif">inactif</option>
+        </select>
+        <input id="new-client-contact" class="field" placeholder="Contact" style="margin-top:10px" />
+        <input id="new-client-phone" class="field" placeholder="Téléphone" style="margin-top:10px" />
+        <input id="new-client-email" class="field" placeholder="Email" style="margin-top:10px" />
+        <input id="new-client-address" class="field" placeholder="Adresse" style="margin-top:10px" />
+        <input id="new-client-city" class="field" placeholder="Ville" style="margin-top:10px" />
+        <input id="new-client-zone" class="field" placeholder="Zone" style="margin-top:10px" />
+        <textarea id="new-client-notes" class="field" style="margin-top:10px" placeholder="Notes"></textarea>
+        <button class="btn full" style="margin-top:10px" onclick="createClient()">Créer la fiche</button>
       </div>
     </div>
   `;
@@ -657,63 +628,23 @@ function renderClient(id){
     <div class="content">
       <div class="card">
         <div class="row">
-          <div style="min-width:0">
-            <div class="name">${esc(c.contact || "Contact à compléter")}</div>
-            <div class="muted">${esc(c.city)} · ${esc(c.zone)}</div>
-          </div>
+          <div><div class="name">${esc(c.contact || "Contact à compléter")}</div><div class="muted">${esc(c.city)} · ${esc(c.zone)}</div></div>
           ${statusBadge(c.status)}
         </div>
-
-        <div class="grid2" style="margin-top:14px">
-          <a class="btn" href="${c.phone ? `tel:${c.phone}` : '#'}">Appeler</a>
-          <a class="btn secondary" target="_blank" href="${mapsUrl(c.address)}">Maps</a>
-          <a class="btn secondary" target="_blank" href="${wazeUrl(c.address)}">Waze</a>
-          <a class="btn secondary" href="${c.email ? `mailto:${c.email}` : '#'}">Email</a>
-        </div>
-
-        <div class="card" style="padding:12px;margin-top:12px;background:#fafafa">
-          <div class="muted">Adresse</div>
-          <div class="small" style="margin-top:6px;font-weight:700">${esc(c.address)}</div>
-        </div>
-
         <div class="grid2" style="margin-top:12px">
-          <div class="card" style="padding:12px;background:#fafafa">
-            <div class="muted">Dernière visite</div>
-            <div class="small" style="margin-top:6px;font-weight:700">${fmtDate(c.lastVisit)}</div>
-          </div>
-          <div class="card" style="padding:12px;background:#fff7ed;border-color:#fed7aa">
-            <div class="muted">Prochaine relance</div>
-            <div class="small" style="margin-top:6px;font-weight:700">${fmtDate(c.nextFollowUp)}</div>
-          </div>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="section-title">Actions rapides</div>
-        <div class="grid2">
           <button class="btn" onclick="markVisited(${c.id},21)">Visité</button>
           <button class="btn secondary" onclick="postponeFollowUp(${c.id},7)">+ 7 jours</button>
-          <button class="btn secondary" onclick="postponeFollowUp(${c.id},14)">+ 14 jours</button>
-          <button class="btn secondary" onclick="postponeFollowUp(${c.id},30)">+ 1 mois</button>
         </div>
-        <div style="margin-top:10px">
-          <input id="manual-followup-date" class="field" type="date" value="${esc(c.nextFollowUp || "")}" />
-          <button class="btn full" style="margin-top:10px" onclick="setManualFollowUp(${c.id})">Enregistrer la date manuelle</button>
-        </div>
+        <input id="manual-followup-date" class="field" type="date" value="${esc(c.nextFollowUp || "")}" style="margin-top:10px" />
+        <button class="btn full" style="margin-top:10px" onclick="setManualFollowUp(${c.id})">Date de relance</button>
       </div>
 
       <div class="card">
-        <div class="section-title">Ajouter dégustation</div>
-        <select id="taste-product" class="field">
-          ${activeProducts.map(p => `<option value="${p.id}">${esc(p.name)} ${esc(p.vintage)}</option>`).join("")}
-        </select>
-        <div class="star-row" style="margin-top:12px">
-          ${[1,2,3,4,5].map(n => `<button class="star-btn ${tastingDraftRating >= n ? '' : 'star-off'}" onclick="setTastingDraftRating(${n})">★</button>`).join("")}
-        </div>
-        <label style="display:flex;align-items:center;gap:8px;margin-top:10px" class="small">
-          <input id="taste-liked" type="checkbox" /> Le client a aimé
-        </label>
-        <textarea id="taste-comment" class="field" style="margin-top:10px" placeholder="Commentaire rapide"></textarea>
+        <div class="section-title">Dégustation</div>
+        <select id="taste-product" class="field">${activeProducts.map(p => `<option value="${p.id}">${esc(p.name)} ${esc(p.vintage)}</option>`).join("")}</select>
+        <div class="star-row" style="margin-top:12px">${[1,2,3,4,5].map(n => `<button class="star-btn ${tastingDraftRating >= n ? '' : 'star-off'}" onclick="setTastingDraftRating(${n})">★</button>`).join("")}</div>
+        <label class="small" style="display:flex;align-items:center;gap:8px;margin-top:10px"><input id="taste-liked" type="checkbox" /> Le client a aimé</label>
+        <textarea id="taste-comment" class="field" style="margin-top:10px" placeholder="Commentaire"></textarea>
         <button class="btn full" style="margin-top:10px" onclick="addTasting(${c.id})">Ajouter la dégustation</button>
       </div>
 
@@ -721,10 +652,7 @@ function renderClient(id){
         <div class="section-title">Commande</div>
         ${activeProducts.map(p => `
           <div class="order-line" data-id="${p.id}">
-            <div>
-              <div class="name">${esc(p.name)} ${esc(p.vintage)}</div>
-              <div class="muted">${esc(p.color)}</div>
-            </div>
+            <div><div class="name">${esc(p.name)} ${esc(p.vintage)}</div><div class="muted">${esc(p.color)}</div></div>
             <input class="field mono" type="number" min="0" placeholder="0" />
           </div>
         `).join("")}
@@ -738,18 +666,107 @@ function renderClient(id){
           ${(c.orders || []).length ? c.orders.map(o => `
             <div class="item">
               <div class="row">
-                <div>
-                  <div class="name">${fmtDate(o.date)}</div>
-                  <div class="muted">${o.status === "sent" ? "Transmise" : "Non transmise"}</div>
-                </div>
-                <button class="btn ${o.status === 'sent' ? 'info' : 'secondary'}" style="width:auto" onclick="toggleOrderStatus(${c.id},${o.id})">
-                  ${o.status === "sent" ? "✅ Transmise" : "⬜ Non transmise"}
-                </button>
+                <div><div class="name">${fmtDate(o.date)}</div><div class="muted">${o.status === "sent" ? "Transmise" : "Non transmise"}</div></div>
+                <button class="btn ${o.status === 'sent' ? 'info' : 'secondary'}" style="width:auto" onclick="toggleOrderStatus(${c.id},${o.id})">${o.status === "sent" ? "✅" : "⬜"}</button>
               </div>
               <div class="small" style="margin-top:8px">${o.items.map(i => `${esc(productById(i.productId)?.name || "Vin")} x ${i.qty}`).join("<br>")}</div>
-              ${o.comment ? `<div class="muted" style="margin-top:8px">${esc(o.comment)}</div>` : ``}
+              <div class="toolbar" style="margin-top:10px">
+                <button class="btn soft" onclick="editOrder(${c.id},${o.id})">✏️ Modifier</button>
+              </div>
             </div>
           `).join("") : `<div class="muted">Aucune commande.</div>`}
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="section-title">Éditer la fiche client</div>
+        <input id="edit-client-name" class="field" value="${esc(c.name)}" />
+        <input id="edit-client-contact" class="field" value="${esc(c.contact)}" style="margin-top:10px" />
+        <input id="edit-client-phone" class="field" value="${esc(c.phone)}" style="margin-top:10px" />
+        <input id="edit-client-email" class="field" value="${esc(c.email)}" style="margin-top:10px" />
+        <input id="edit-client-address" class="field" value="${esc(c.address)}" style="margin-top:10px" />
+        <input id="edit-client-city" class="field" value="${esc(c.city)}" style="margin-top:10px" />
+        <input id="edit-client-zone" class="field" value="${esc(c.zone)}" style="margin-top:10px" />
+        <select id="edit-client-type" class="field" style="margin-top:10px">${["Caviste","CHR","Grossiste"].map(v => `<option ${c.type===v?'selected':''}>${v}</option>`).join("")}</select>
+        <select id="edit-client-tariff" class="field" style="margin-top:10px">${["Caviste","CHR","Grossiste"].map(v => `<option ${c.tariff===v?'selected':''}>${v}</option>`).join("")}</select>
+        <select id="edit-client-status" class="field" style="margin-top:10px">${["prospect","client","inactif"].map(v => `<option value="${v}" ${c.status===v?'selected':''}>${v}</option>`).join("")}</select>
+        <textarea id="edit-client-notes" class="field" style="margin-top:10px">${esc(c.notes)}</textarea>
+        <button class="btn full" style="margin-top:10px" onclick="saveClientEdits(${c.id})">Enregistrer</button>
+      </div>
+    </div>
+  `;
+}
+
+function renderRelances(){
+  const urgent = dueToday();
+  return `
+    ${screenHeader("Relances", `${data.clients.filter(c => c.nextFollowUp).length} client(s)`)}
+    <div class="content">
+      <div class="card">
+        <div class="section-title">Ajouter une relance</div>
+        <select id="relance-client-select" class="field"><option value="">Choisir un client</option>${data.clients.map(c => `<option value="${c.id}">${esc(c.name)}</option>`).join("")}</select>
+        <input id="relance-manual-date" class="field" type="date" style="margin-top:10px" />
+        <button class="btn full" style="margin-top:10px" onclick="addFollowUpFromRelances()">Ajouter</button>
+      </div>
+
+      <div class="list">
+        ${urgent.length ? urgent.map(c => `
+          <div class="item" onclick="pushScreen('client',{id:${c.id}})">
+            <div class="name">${esc(c.name)}</div>
+            <div class="muted">${fmtDate(c.nextFollowUp)}</div>
+          </div>
+        `).join("") : `<div class="muted">Aucune relance urgente.</div>`}
+      </div>
+    </div>
+  `;
+}
+
+function renderOrders(){
+  const list = filteredOrders();
+  const pending = list.filter(o => o.status === "pending");
+  const sent = list.filter(o => o.status === "sent");
+  return `
+    ${screenHeader("Commandes", `${list.length} commande(s)`)}
+    <div class="content">
+      <div class="card">
+        <div class="section-title">Filtre par date</div>
+        <input class="field" type="date" value="${esc(ordersDateFilter)}" onchange="setOrdersDateFilter(this.value)" />
+        <button class="btn soft full" style="margin-top:10px" onclick="setOrdersDateFilter('')">Réinitialiser</button>
+      </div>
+
+      <div class="card">
+        <div class="split-title"><div class="section-title" style="margin:0">À transmettre</div><span class="badge prospect">${pending.length}</span></div>
+        <div class="list">
+          ${pending.length ? pending.map(o => `
+            <div class="item">
+              <div class="row">
+                <div onclick="pushScreen('client',{id:${o.clientId}})" style="cursor:pointer">
+                  <div class="name">${esc(o.clientName)}</div>
+                  <div class="muted">${fmtDate(o.date)}</div>
+                </div>
+                <button class="btn secondary" style="width:auto" onclick="toggleOrderStatus(${o.clientId},${o.orderId})">⬜</button>
+              </div>
+              <div class="small" style="margin-top:8px">${o.items.map(i => `${esc(productById(i.productId)?.name || "Vin")} x ${i.qty}`).join("<br>")}</div>
+            </div>
+          `).join("") : `<div class="muted">Aucune commande en attente.</div>`}
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="split-title"><div class="section-title" style="margin:0">Déjà transmises</div><span class="badge client">${sent.length}</span></div>
+        <div class="list">
+          ${sent.length ? sent.map(o => `
+            <div class="item">
+              <div class="row">
+                <div onclick="pushScreen('client',{id:${o.clientId}})" style="cursor:pointer">
+                  <div class="name">${esc(o.clientName)}</div>
+                  <div class="muted">${fmtDate(o.date)}</div>
+                </div>
+                <button class="btn info" style="width:auto" onclick="toggleOrderStatus(${o.clientId},${o.orderId})">✅</button>
+              </div>
+              <div class="small" style="margin-top:8px">${o.items.map(i => `${esc(productById(i.productId)?.name || "Vin")} x ${i.qty}`).join("<br>")}</div>
+            </div>
+          `).join("") : `<div class="muted">Aucune commande transmise.</div>`}
         </div>
       </div>
     </div>
@@ -767,20 +784,84 @@ function renderProducts(){
         <button class="btn soft" onclick="setProductFilter('active')">Actifs</button>
         <button class="btn soft" onclick="setProductFilter('archived')">Archivés</button>
       </div>
-      <input class="field" placeholder="Rechercher un vin..." value="${esc(search)}" oninput="setSearch(this.value)" />
       <div class="list">
-        ${list.map(p => {
-          const stats = productStats(p.id, false);
+        ${list.map(p => `
+          <div class="item" onclick="pushScreen('product',{id:${p.id}})">
+            <div class="row">
+              <div><div class="name">${esc(p.name)} ${esc(p.vintage)}</div><div class="muted">${esc(p.color)}</div></div>
+              ${wineBadge(p.active)}
+            </div>
+          </div>
+        `).join("")}
+      </div>
+    </div>
+  `;
+}
+
+function renderProduct(id){
+  const p = productById(id);
+  const stats = productStats(id, false);
+  return `
+    ${screenHeader(`${p.name} ${p.vintage}`, `${esc(p.color)}`, "history.back()")}
+    <div class="content">
+      <div class="card">
+        <div class="stats-grid">
+          <div class="stats-card" onclick="openProductClients(${p.id},'tastings',false)"><div class="stat">${stats.tastings.length}</div><div class="muted">Dégustations</div></div>
+          <div class="stats-card" onclick="openProductClients(${p.id},'orders',false)"><div class="stat">${stats.orders.length}</div><div class="muted">Commandes</div></div>
+          <div class="stats-card"><div class="stat">${stats.avg}</div><div class="muted">Note moy.</div></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <input id="edit-product-family" class="field" value="${esc(p.family)}" />
+        <input id="edit-product-name" class="field" value="${esc(p.name)}" style="margin-top:10px" />
+        <input id="edit-product-vintage" class="field" value="${esc(p.vintage)}" style="margin-top:10px" />
+        <input id="edit-product-color" class="field" value="${esc(p.color)}" style="margin-top:10px" />
+        <textarea id="edit-product-tech" class="field" style="margin-top:10px">${esc(p.techSheet)}</textarea>
+        <textarea id="edit-product-notes" class="field" style="margin-top:10px">${esc(p.notes)}</textarea>
+        <label class="small" style="display:flex;align-items:center;gap:8px;margin-top:10px"><input id="edit-product-active" type="checkbox" ${p.active ? "checked" : ""} /> Produit actif</label>
+        <button class="btn full" style="margin-top:10px" onclick="saveProductEdits(${p.id})">Enregistrer</button>
+        <div class="toolbar" style="margin-top:10px">
+          <button class="btn soft" onclick="duplicateProduct(${p.id})">Dupliquer</button>
+          <button class="btn soft" onclick="createNextVintage(${p.id})">Nouveau millésime</button>
+          <button class="btn secondary" onclick="toggleArchiveProduct(${p.id})">${p.active ? "Archiver" : "Réactiver"}</button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function renderTour(){
+  return `
+    ${screenHeader("Tournée du jour", `${data.tourList.length} étape(s)`)}
+    <div class="content">
+      <div class="card">
+        <div class="toolbar">
+          <button class="btn" onclick="openTourMaps()">GPS tournée</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="section-title">Ajouter à la tournée</div>
+        <div class="list">
+          ${data.clients.map(c => `<div class="item" onclick="addClientToTour(${c.id})">${esc(c.name)}</div>`).join("")}
+        </div>
+      </div>
+
+      <div class="list">
+        ${data.tourList.map((t, i) => {
+          const c = clientById(t.id);
           return `
-            <div class="item" onclick="pushScreen('product',{id:${p.id}})">
+            <div class="card">
               <div class="row">
-                <div style="min-width:0">
-                  <div class="name">${esc(p.name)} ${esc(p.vintage)}</div>
-                  <div class="muted">${esc(p.color)} · Famille ${esc(p.family)}</div>
-                  <div class="small" style="margin-top:8px">${esc(p.notes || "")}</div>
-                  <div class="muted" style="margin-top:8px">${stats.tastings.length} dégustation(s) · note moyenne ${stats.avg}</div>
-                </div>
-                ${wineBadge(p.active)}
+                <div><div class="name">${i+1}. ${esc(c.name)}</div><div class="muted">${esc(c.city)}</div></div>
+                <input class="field mono" style="width:90px;padding:10px 12px" value="${esc(t.time || "")}" placeholder="heure" onchange="updateTourTime(${i}, this.value)" />
+              </div>
+              <div class="grid2" style="margin-top:10px">
+                <button class="btn secondary" onclick="moveTourUp(${i})">⬆️</button>
+                <button class="btn secondary" onclick="moveTourDown(${i})">⬇️</button>
+                <button class="btn" onclick="markVisited(${c.id},21)">Visité</button>
+                <button class="btn danger" onclick="removeFromTour(${c.id})">Supprimer</button>
               </div>
             </div>
           `;
@@ -790,312 +871,22 @@ function renderProducts(){
   `;
 }
 
-function renderProduct(id){
-  const p = productById(id);
-  const stats = productStats(id, false);
-  const familyStats = productStats(id, true);
-  const related = data.products.filter(x => x.family === p.family && x.id !== p.id);
-  return `
-    ${screenHeader(`${p.name} ${p.vintage}`, `${esc(p.color)} · Famille ${esc(p.family)}`, "history.back()")}
-    <div class="content">
-      <div class="card">
-        <div class="row">
-          <div>
-            <div class="name">${esc(p.name)} ${esc(p.vintage)}</div>
-            <div class="muted">${esc(p.color)}</div>
-          </div>
-          ${wineBadge(p.active)}
-        </div>
-        <div class="toolbar" style="margin-top:14px">
-          <button class="btn soft" onclick="duplicateProduct(${p.id})">Dupliquer</button>
-          <button class="btn soft" onclick="createNextVintage(${p.id})">Nouveau millésime</button>
-          <button class="btn warn" onclick="toggleArchiveProduct(${p.id})">${p.active ? "Archiver" : "Réactiver"}</button>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="section-title">Stats de cette fiche</div>
-        <div class="stats-grid">
-          <div class="stats-card" onclick="openProductClients(${p.id},'tastings',false)">
-            <div class="stat">${stats.tastings.length}</div>
-            <div class="muted">Dégustations</div>
-          </div>
-          <div class="stats-card" onclick="openProductClients(${p.id},'tastings',false)">
-            <div class="stat">${stats.avg}</div>
-            <div class="muted">Note moy.</div>
-          </div>
-          <div class="stats-card" onclick="openProductClients(${p.id},'orders',false)">
-            <div class="stat">${stats.orders.length}</div>
-            <div class="muted">Commandes</div>
-          </div>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="section-title">Stats de la famille</div>
-        <div class="stats-grid">
-          <div class="stats-card" onclick="openProductClients(${p.id},'tastings',true)">
-            <div class="stat">${familyStats.tastings.length}</div>
-            <div class="muted">Dégustations</div>
-          </div>
-          <div class="stats-card" onclick="openProductClients(${p.id},'tastings',true)">
-            <div class="stat">${familyStats.avg}</div>
-            <div class="muted">Note moy.</div>
-          </div>
-          <div class="stats-card" onclick="openProductClients(${p.id},'orders',true)">
-            <div class="stat">${familyStats.orders.length}</div>
-            <div class="muted">Commandes</div>
-          </div>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="section-title">Éditer la fiche produit</div>
-        <input id="edit-product-family" class="field" value="${esc(p.family)}" placeholder="Famille produit" />
-        <input id="edit-product-name" class="field" value="${esc(p.name)}" placeholder="Nom de la cuvée" style="margin-top:10px" />
-        <input id="edit-product-vintage" class="field" value="${esc(p.vintage)}" placeholder="Millésime" style="margin-top:10px" />
-        <input id="edit-product-color" class="field" value="${esc(p.color)}" placeholder="Couleur" style="margin-top:10px" />
-        <textarea id="edit-product-tech" class="field" style="margin-top:10px" placeholder="Fiche technique">${esc(p.techSheet)}</textarea>
-        <textarea id="edit-product-notes" class="field" style="margin-top:10px" placeholder="Notes internes">${esc(p.notes)}</textarea>
-        <label class="small" style="display:flex;align-items:center;gap:8px;margin-top:10px">
-          <input id="edit-product-active" type="checkbox" ${p.active ? "checked" : ""} />
-          Produit actif
-        </label>
-        <button class="btn full" style="margin-top:10px" onclick="saveProductEdits(${p.id})">Enregistrer le produit</button>
-      </div>
-
-      <div class="card">
-        <div class="section-title">Millésimes liés</div>
-        <div class="list">
-          ${[p, ...related].map(x => `
-            <div class="item" onclick="pushScreen('product',{id:${x.id}})">
-              <div class="row">
-                <div>
-                  <div class="name">${esc(x.name)} ${esc(x.vintage)}</div>
-                  <div class="muted">${esc(x.color)}</div>
-                </div>
-                ${wineBadge(x.active)}
-              </div>
-            </div>
-          `).join("")}
-        </div>
-      </div>
-    </div>
-  `;
-}
-
-function renderRelances(){
-  const urgent = dueToday();
-  const soon = dueSoon();
-  return `
-    ${screenHeader("Relances", `${data.clients.filter(c => c.nextFollowUp).length} client(s) suivis`)}
-    <div class="content">
-      <div class="card">
-        <div class="section-title">Ajouter une relance</div>
-        <select id="relance-client-select" class="field">
-          <option value="">Choisir un client</option>
-          ${data.clients.map(c => `<option value="${c.id}">${esc(c.name)}</option>`).join("")}
-        </select>
-        <input id="relance-manual-date" class="field" type="date" style="margin-top:10px" />
-        <button class="btn full" style="margin-top:10px" onclick="addFollowUpFromRelances()">Ajouter la relance</button>
-      </div>
-
-      <div class="card" style="background:#fef2f2;border-color:#fecaca">
-        <div class="name">Aujourd’hui</div>
-        <div class="small" style="margin-top:6px">${urgent.length} relance(s) à traiter</div>
-      </div>
-
-      <div class="list">
-        ${urgent.length ? urgent.map(c => `
-          <div class="card">
-            <div class="row">
-              <div>
-                <div class="name">${esc(c.name)}</div>
-                <div class="muted">${esc(c.city)} · ${fmtDate(c.nextFollowUp)}</div>
-              </div>
-              <span class="badge prospect">Urgent</span>
-            </div>
-            <div class="grid2" style="margin-top:12px">
-              <a class="btn secondary" href="${c.phone ? `tel:${c.phone}` : '#'}">Appeler</a>
-              <a class="btn secondary" target="_blank" href="${mapsUrl(c.address)}">Itinéraire</a>
-              <button class="btn" onclick="markVisited(${c.id},21)">Fait</button>
-              <button class="btn secondary" onclick="postponeFollowUp(${c.id},7)">Reporter</button>
-            </div>
-          </div>
-        `).join("") : `<div class="muted">Aucune relance urgente.</div>`}
-      </div>
-
-      <div class="card">
-        <div class="section-title">Bientôt</div>
-        <div class="list">
-          ${soon.length ? soon.map(c => `
-            <div class="item" onclick="pushScreen('client',{id:${c.id}})">
-              <div class="name">${esc(c.name)}</div>
-              <div class="muted">${esc(c.city)} · ${fmtDate(c.nextFollowUp)}</div>
-            </div>
-          `).join("") : `<div class="muted">Aucune relance proche.</div>`}
-        </div>
-      </div>
-    </div>
-  `;
-}
-
-function renderOrders(){
-  const list = filteredOrders();
-  const pending = list.filter(o => o.status === "pending");
-  const sent = list.filter(o => o.status === "sent");
-  return `
-    ${screenHeader("Commandes", `${list.length} commande(s)`)}
-    <div class="content">
-      <div class="card">
-        <div class="section-title">Filtre par date</div>
-        <input class="field" type="date" value="${esc(ordersDateFilter)}" onchange="setOrdersDateFilter(this.value)" />
-        <button class="btn soft full" style="margin-top:10px" onclick="setOrdersDateFilter('')">Réinitialiser le filtre</button>
-      </div>
-
-      <div class="card">
-        <div class="split-title">
-          <div class="section-title" style="margin:0">À transmettre</div>
-          <span class="badge prospect">${pending.length}</span>
-        </div>
-        <div class="list">
-          ${pending.length ? pending.map(o => `
-            <div class="item">
-              <div class="row">
-                <div onclick="pushScreen('client',{id:${o.clientId}})" style="cursor:pointer">
-                  <div class="name">${esc(o.clientName)}</div>
-                  <div class="muted">${fmtDate(o.date)} · ${esc(o.city || "")}</div>
-                </div>
-                <button class="btn secondary" style="width:auto" onclick="toggleOrderStatus(${o.clientId},${o.orderId})">⬜ Non transmise</button>
-              </div>
-              <div class="small" style="margin-top:8px">
-                ${o.items.map(i => `${esc(productById(i.productId)?.name || "Vin")} x ${i.qty}`).join("<br>")}
-              </div>
-              ${o.comment ? `<div class="muted" style="margin-top:8px">${esc(o.comment)}</div>` : ``}
-            </div>
-          `).join("") : `<div class="muted">Aucune commande en attente.</div>`}
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="split-title">
-          <div class="section-title" style="margin:0">Déjà transmises</div>
-          <span class="badge client">${sent.length}</span>
-        </div>
-        <div class="list">
-          ${sent.length ? sent.map(o => `
-            <div class="item">
-              <div class="row">
-                <div onclick="pushScreen('client',{id:${o.clientId}})" style="cursor:pointer">
-                  <div class="name">${esc(o.clientName)}</div>
-                  <div class="muted">${fmtDate(o.date)} · ${esc(o.city || "")}</div>
-                </div>
-                <button class="btn info" style="width:auto" onclick="toggleOrderStatus(${o.clientId},${o.orderId})">✅ Transmise</button>
-              </div>
-              <div class="small" style="margin-top:8px">
-                ${o.items.map(i => `${esc(productById(i.productId)?.name || "Vin")} x ${i.qty}`).join("<br>")}
-              </div>
-              ${o.comment ? `<div class="muted" style="margin-top:8px">${esc(o.comment)}</div>` : ``}
-            </div>
-          `).join("") : `<div class="muted">Aucune commande transmise.</div>`}
-        </div>
-      </div>
-    </div>
-  `;
-}
-
-function renderMap(){
-  const list = filteredClients();
-  return `
-    ${screenHeader("Carte clients","Vue simulée")}
-    <div class="content">
-      <input class="field" placeholder="Zone, ville, client..." value="${esc(search)}" oninput="setSearch(this.value)" />
-      <div class="mapbox">
-        <div class="mapgrid"></div>
-        ${list.map((c, i) => `<button class="pin ${c.status}" style="top:${18 + ((i*13)%65)}%;left:${15 + ((i*17)%65)}%;" onclick="pushScreen('client',{id:${c.id}})"></button>`).join("")}
-        <div style="position:absolute;left:14px;right:14px;bottom:14px;background:rgba(255,255,255,.95);border-radius:18px;padding:14px;border:1px solid #fff">
-          <div class="name">Google Maps</div>
-          <div class="muted" style="margin-top:6px">Dans la vraie version, cette zone affichera la carte réelle avec itinéraires.</div>
-        </div>
-      </div>
-    </div>
-  `;
-}
-
-function renderTour(){
-  return `
-    ${screenHeader("Tournée du jour", `${data.tourList.length} étape(s) · ordre libre`)}
-    <div class="content">
-      <div class="card dark">
-        <div class="subtitle">Parcours du jour</div>
-        <div style="font-size:24px;font-weight:800;margin-top:6px">Organisation libre</div>
-        <div class="toolbar" style="margin-top:12px">
-          <button class="btn secondary" onclick="pushScreen('tourAdd')">+ Ajouter un client</button>
-          <button class="btn secondary" onclick="openTourMaps()">GPS tournée</button>
-        </div>
-      </div>
-
-      ${data.tourList.map((t, i) => {
-        const c = clientById(t.id);
-        if (!c) return "";
-        return `
-          <div class="card">
-            <div class="row">
-              <div>
-                <div class="name">${i + 1}. ${esc(c.name)}</div>
-                <div class="muted">${esc(c.city)} · ${esc(c.type)}</div>
-              </div>
-              <input class="field mono" style="width:90px;padding:10px 12px" value="${esc(t.time || "")}" placeholder="heure" onchange="updateTourTime(${i}, this.value)" />
-            </div>
-            <div class="grid2" style="margin-top:12px">
-              <button class="btn secondary" onclick="moveTourUp(${i})">⬆️ Monter</button>
-              <button class="btn secondary" onclick="moveTourDown(${i})">⬇️ Descendre</button>
-              <button class="btn" onclick="markVisited(${c.id},21)">Visité</button>
-              <button class="btn danger" onclick="removeFromTour(${c.id})">Supprimer</button>
-            </div>
-          </div>
-        `;
-      }).join("")}
-    </div>
-  `;
-}
-
-function renderTourAdd(){
-  const ids = new Set(data.tourList.map(t => t.id));
-  const list = data.clients.filter(c => !ids.has(c.id));
-  return `
-    ${screenHeader("Ajouter à la tournée", `${list.length} disponible(s)`, "history.back()")}
-    <div class="content">
-      ${list.length ? list.map(c => `
-        <div class="item" onclick="addClientToTour(${c.id})">
-          <div class="name">${esc(c.name)}</div>
-          <div class="muted">${esc(c.city)} · ${esc(c.type)}</div>
-        </div>
-      `).join("") : `<div class="muted">Tous les clients sont déjà dans la tournée.</div>`}
-    </div>
-  `;
-}
-
 function renderSettings(){
   return `
-    ${screenHeader("Sauvegarde / export","Lire tes données même sans l’app")}
+    ${screenHeader("Sauvegarde / export","Local")}
     <div class="content">
       <div class="card">
-        <div class="section-title">Sauvegarde locale</div>
-        <div class="small">Les modifications sont conservées sur cet appareil via le navigateur.</div>
-        <div class="toolbar" style="margin-top:12px">
-          <button class="btn info" onclick="saveData(); alert('Données enregistrées.')">Sauvegarder maintenant</button>
+        <div class="toolbar">
+          <button class="btn info" onclick="saveData(); alert('Données enregistrées.')">Sauvegarder</button>
           <button class="btn danger" onclick="resetData()">Réinitialiser</button>
         </div>
       </div>
-
       <div class="card">
-        <div class="section-title">Exports</div>
         <div class="list">
-          <button class="btn soft" onclick="exportJSON()">Exporter sauvegarde JSON</button>
+          <button class="btn soft" onclick="exportJSON()">Exporter JSON</button>
           <button class="btn soft" onclick="exportClientsCSV()">Exporter clients CSV</button>
           <button class="btn soft" onclick="exportProductsCSV()">Exporter produits CSV</button>
-          <button class="btn soft" onclick="exportReadableTXT()">Exporter document lisible TXT</button>
+          <button class="btn soft" onclick="exportReadableTXT()">Exporter lisible TXT</button>
         </div>
       </div>
     </div>
@@ -1116,10 +907,7 @@ function renderModal(){
       <div style="position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:40;display:flex;align-items:flex-end;justify-content:center" onclick="closeModal()">
         <div style="width:100%;max-width:430px;background:#fff;border-radius:24px 24px 0 0;padding:16px 16px 24px;max-height:80vh;overflow:auto" onclick="event.stopPropagation()">
           <div class="row">
-            <div>
-              <div class="name">${mode === "tastings" ? "Clients ayant dégusté" : "Clients ayant commandé"}</div>
-              <div class="muted">${esc(p.name)} ${esc(p.vintage)}${includeFamily ? " · famille complète" : ""}</div>
-            </div>
+            <div><div class="name">${mode === "tastings" ? "Clients ayant dégusté" : "Clients ayant commandé"}</div><div class="muted">${esc(p.name)} ${esc(p.vintage)}</div></div>
             <button class="btn soft" style="width:auto" onclick="closeModal()">Fermer</button>
           </div>
           <div class="list" style="margin-top:14px">
@@ -1139,10 +927,7 @@ function renderModal(){
 }
 
 function renderNav(){
-  const current = currentScreen.name === "client" ? "clients"
-    : currentScreen.name === "product" ? "products"
-    : currentScreen.name === "tourAdd" ? "tour"
-    : currentScreen.name;
+  const current = currentScreen.name === "client" ? "clients" : currentScreen.name === "product" ? "products" : currentScreen.name;
   const tabs = [
     ["home","Accueil"],
     ["clients","Clients"],
@@ -1165,45 +950,44 @@ function render(){
   let html = "";
   if (currentScreen.name === "home") html = renderHome();
   if (currentScreen.name === "clients") html = renderClients();
+  if (currentScreen.name === "clientCreate") html = renderClientCreate();
   if (currentScreen.name === "client") html = renderClient(currentScreen.params.id);
   if (currentScreen.name === "products") html = renderProducts();
   if (currentScreen.name === "product") html = renderProduct(currentScreen.params.id);
   if (currentScreen.name === "relances") html = renderRelances();
   if (currentScreen.name === "orders") html = renderOrders();
-  if (currentScreen.name === "map") html = renderMap();
   if (currentScreen.name === "tour") html = renderTour();
-  if (currentScreen.name === "tourAdd") html = renderTourAdd();
   if (currentScreen.name === "settings") html = renderSettings();
-
   document.getElementById("app").innerHTML = html + renderNav() + renderModal();
 }
 
 window.pushScreen = pushScreen;
-window.setSearch = setSearch;
+window.setSearchStable = setSearchStable;
 window.setProductFilter = setProductFilter;
 window.setOrdersDateFilter = setOrdersDateFilter;
+window.createClient = createClient;
 window.saveClientEdits = saveClientEdits;
 window.setManualFollowUp = setManualFollowUp;
 window.markVisited = markVisited;
 window.postponeFollowUp = postponeFollowUp;
 window.addFollowUpFromRelances = addFollowUpFromRelances;
-window.addClientNote = addClientNote;
 window.setTastingDraftRating = setTastingDraftRating;
 window.addTasting = addTasting;
 window.addOrder = addOrder;
 window.toggleOrderStatus = toggleOrderStatus;
-window.saveProductEdits = saveProductEdits;
-window.duplicateProduct = duplicateProduct;
-window.createNextVintage = createNextVintage;
-window.toggleArchiveProduct = toggleArchiveProduct;
-window.createProduct = createProduct;
-window.openProductClients = openProductClients;
+window.editOrder = editOrder;
 window.addClientToTour = addClientToTour;
 window.removeFromTour = removeFromTour;
 window.moveTourUp = moveTourUp;
 window.moveTourDown = moveTourDown;
 window.updateTourTime = updateTourTime;
 window.openTourMaps = openTourMaps;
+window.saveProductEdits = saveProductEdits;
+window.duplicateProduct = duplicateProduct;
+window.createNextVintage = createNextVintage;
+window.toggleArchiveProduct = toggleArchiveProduct;
+window.createProduct = createProduct;
+window.openProductClients = openProductClients;
 window.exportJSON = exportJSON;
 window.exportClientsCSV = exportClientsCSV;
 window.exportProductsCSV = exportProductsCSV;
