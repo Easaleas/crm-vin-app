@@ -39,7 +39,7 @@
     .badge.prospect{background:#fff2cc;color:#8a6400}
     .badge.inactif{background:#eee;color:#555}
     .nav{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid var(--border);padding:8px}
-    .nav-inner{max-width:430px;margin:0 auto;display:grid;grid-template-columns:repeat(8,1fr);gap:6px}
+    .nav-inner{max-width:430px;margin:0 auto;display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
     .tab{border:none;background:transparent;padding:8px 4px;border-radius:10px;font-size:11px;color:#666}
     .tab.active{background:#111;color:#fff}
     .suggestions{display:flex;flex-direction:column;gap:6px;margin-top:8px}
@@ -52,8 +52,8 @@
     .stats-card{background:#fff;border:1px solid var(--border);border-radius:12px;padding:12px;cursor:pointer}
     .stat{font-size:28px;font-weight:700}
     .periods{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
-    .modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.4);display:flex;align-items:flex-end;justify-content:center;z-index:30}
-    .modal{width:100%;max-width:430px;background:#fff;border-radius:16px 16px 0 0;padding:14px;max-height:85vh;overflow:auto}
+    .modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.4);display:flex;align-items:flex-end;justify-content:center;z-index:40}
+    .modal{width:100%;max-width:430px;background:#fff;border-radius:16px 16px 0 0;padding:14px;max-height:88vh;overflow:auto}
     .mapbox{
       position:relative;height:360px;border-radius:14px;overflow:hidden;
       background:linear-gradient(135deg,#d7dde5,#edf0f4);border:1px solid var(--border)
@@ -98,7 +98,7 @@
 <div id="app" class="app"></div>
 
 <script>
-const STORAGE_KEY = "crm_vin_final_v7_rdv";
+const STORAGE_KEY = "crm_vin_final_v8_tournee_rdv_fusion";
 const today = new Date().toISOString().slice(0,10);
 
 const defaultData = {
@@ -226,10 +226,10 @@ let state = {
   mapSelectionMode:false,
   mapSelectedClientIds:[],
   mapPopupClientId:null,
-  rdvView:"list",
-  calendarMonth: new Date().getMonth(),
-  calendarYear: new Date().getFullYear(),
-  selectedCalendarDate: today
+  tourTab:"active",
+  tourCalendarMonth: new Date().getMonth(),
+  tourCalendarYear: new Date().getFullYear(),
+  tourSelectedCalendarDate: today
 };
 
 function loadData(){
@@ -350,7 +350,6 @@ function tourCandidates(){
   const ids = new Set(data.tourList.map(t=>t.id));
   return data.clients.filter(c => !ids.has(c.id) && `${c.name} ${c.city}`.toLowerCase().includes(state.tourSearch.toLowerCase()));
 }
-
 function appointmentsToday(){
   return data.appointments.filter(a => a.date === today).sort((a,b)=>(a.time||"").localeCompare(b.time||""));
 }
@@ -359,6 +358,9 @@ function appointmentsUpcoming(){
 }
 function appointmentsForDate(date){
   return data.appointments.filter(a => a.date === date).sort((a,b)=>(a.time||"").localeCompare(b.time||""));
+}
+function clientAppointmentsFuture(clientId){
+  return data.appointments.filter(a => a.clientId === Number(clientId) && a.date >= today).sort((a,b)=>(a.date + (a.time||"")).localeCompare(b.date + (b.time||"")));
 }
 
 function createClient(){
@@ -461,13 +463,7 @@ function createAppointment(clientId){
   const time = document.getElementById("appointment-time").value;
   const note = document.getElementById("appointment-note").value.trim();
   if(!date) return alert("Choisis une date.");
-  data.appointments.unshift({
-    id: nextAppointmentId(),
-    clientId,
-    date,
-    time,
-    note
-  });
+  data.appointments.unshift({ id: nextAppointmentId(), clientId, date, time, note });
   saveData();
   closeModal();
 }
@@ -655,6 +651,106 @@ function removeClientFromSavedTour(clientId){
   if(box) box.remove();
 }
 
+function openCreateTourModal(){
+  state.modal = {type:"createTour"};
+  render();
+}
+function createTourModalSuggestions(){
+  const q = (document.getElementById("create-tour-search")?.value || "").trim().toLowerCase();
+  const selectedIds = getCreateTourSelectedIds();
+  return data.clients
+    .filter(c => !selectedIds.includes(c.id))
+    .filter(c => !q || `${c.name} ${c.city}`.toLowerCase().includes(q))
+    .slice(0,8);
+}
+function getCreateTourSelectedIds(){
+  const rows = document.querySelectorAll("[data-create-tour-client]");
+  return Array.from(rows).map(r => Number(r.getAttribute("data-create-tour-client")));
+}
+function addClientToCreateTour(clientId){
+  const wrap = document.getElementById("create-tour-selected");
+  if(!wrap) return;
+  if(getCreateTourSelectedIds().includes(Number(clientId))) return;
+  const c = clientById(clientId);
+  const idx = wrap.querySelectorAll("[data-create-tour-client]").length;
+  const div = document.createElement("div");
+  div.className = "item";
+  div.setAttribute("data-create-tour-client", String(c.id));
+  div.innerHTML = `
+    <div class="row">
+      <div>
+        <div class="name">${esc(c.name)}</div>
+        <div class="muted">${esc(c.city)}</div>
+      </div>
+      <input id="create-tour-time-${idx}" class="field" style="width:90px" placeholder="heure">
+    </div>
+    <button class="btn red" style="margin-top:8px" onclick="removeClientFromCreateTour(${c.id})">Retirer</button>
+  `;
+  wrap.appendChild(div);
+  refreshCreateTourSuggestions();
+}
+function removeClientFromCreateTour(clientId){
+  const row = document.querySelector(`[data-create-tour-client="${clientId}"]`);
+  if(row) row.remove();
+  refreshCreateTourSuggestions();
+}
+function refreshCreateTourSuggestions(){
+  const target = document.getElementById("create-tour-suggestions");
+  if(!target) return;
+  const suggestions = createTourModalSuggestions();
+  target.innerHTML = suggestions.length
+    ? suggestions.map(c => `<div class="suggestion" onclick="addClientToCreateTour(${c.id})">${esc(c.name)} · ${esc(c.city)}</div>`).join("")
+    : `<div class="muted">Aucune proposition.</div>`;
+
+  const date = document.getElementById("create-tour-date")?.value || "";
+  const rdvBox = document.getElementById("create-tour-rdv-suggestions");
+  if(!rdvBox) return;
+  if(!date){
+    rdvBox.innerHTML = `<div class="muted">Choisis une date pour afficher les rendez-vous déjà prévus.</div>`;
+    return;
+  }
+  const rdvs = appointmentsForDate(date);
+  const selectedIds = getCreateTourSelectedIds();
+  rdvBox.innerHTML = rdvs.length
+    ? rdvs.map(a => {
+        const c = clientById(a.clientId);
+        const included = selectedIds.includes(a.clientId);
+        return `
+          <div class="item">
+            <div class="row">
+              <div>
+                <div class="name">${esc(c?.name || "Client")}</div>
+                <div class="muted">${esc(a.time || "Heure libre")} · ${esc(c?.city || "")}</div>
+                ${a.note ? `<div class="small" style="margin-top:4px">${esc(a.note)}</div>` : ``}
+              </div>
+              <button class="btn ${included ? 'red' : 'green'}" onclick="${included ? `removeClientFromCreateTour(${a.clientId})` : `addClientToCreateTour(${a.clientId})`}">${included ? '−' : '+'}</button>
+            </div>
+          </div>
+        `;
+      }).join("")
+    : `<div class="muted">Aucun rendez-vous prévu ce jour-là.</div>`;
+}
+function saveCreatedTour(){
+  const name = document.getElementById("create-tour-name").value.trim();
+  const date = document.getElementById("create-tour-date").value;
+  const selectedRows = Array.from(document.querySelectorAll("[data-create-tour-client]"));
+  if(!name) return alert("Donne un nom à la tournée.");
+  if(!selectedRows.length) return alert("Ajoute au moins un client.");
+  const tourList = selectedRows.map((row, idx) => ({
+    id: Number(row.getAttribute("data-create-tour-client")),
+    time: document.getElementById(`create-tour-time-${idx}`)?.value || ""
+  }));
+  data.savedTours.unshift({
+    id: nextSavedTourId(),
+    name,
+    date: date || "",
+    tourList
+  });
+  data.tourList = JSON.parse(JSON.stringify(tourList));
+  saveData();
+  closeModal();
+}
+
 function toggleMapSelectionMode(){
   state.mapSelectionMode = !state.mapSelectionMode;
   state.mapPopupClientId = null;
@@ -789,14 +885,14 @@ function getCalendarMatrix(year, month){
   }
   return cells;
 }
-function setCalendarMonth(offset){
-  const d = new Date(state.calendarYear, state.calendarMonth + offset, 1);
-  state.calendarYear = d.getFullYear();
-  state.calendarMonth = d.getMonth();
+function setTourCalendarMonth(offset){
+  const d = new Date(state.tourCalendarYear, state.tourCalendarMonth + offset, 1);
+  state.tourCalendarYear = d.getFullYear();
+  state.tourCalendarMonth = d.getMonth();
   render();
 }
-function setSelectedCalendarDate(date){
-  state.selectedCalendarDate = date;
+function setTourSelectedCalendarDate(date){
+  state.tourSelectedCalendarDate = date;
   render();
 }
 
@@ -832,7 +928,7 @@ function viewHome(){
       <div class="grid3">
         <div class="card" onclick="go('clients')"><div class="stat">${data.clients.length}</div><div class="muted">Clients</div></div>
         <div class="card" onclick="go('relances')"><div class="stat">${urgent.length}</div><div class="muted">Relances</div></div>
-        <div class="card" onclick="go('orders')"><div class="stat">${pending}</div><div class="muted">Cmd</div></div>
+        <div class="card" onclick="go('tour')"><div class="stat">${rdvToday.length}</div><div class="muted">RDV</div></div>
       </div>
 
       <div class="card">
@@ -896,6 +992,7 @@ function viewClientCreate(){
 function viewClient(id){
   const c = clientById(id);
   const products = activeProducts();
+  const futureRdv = clientAppointmentsFuture(c.id);
   return `
     ${header(c.name, `${esc(c.type)} · Tarif ${esc(c.tariff)}`, "go('clients')")}
     <div class="content">
@@ -918,6 +1015,19 @@ function viewClient(id){
         </div>
 
         <input id="visited-manual-date-hidden" type="date" value="${esc(c.lastVisit || today)}" style="position:absolute;left:-9999px;opacity:0" onchange="setVisitedManual(${c.id})">
+      </div>
+
+      <div class="card">
+        <div class="section-title">Rendez-vous à venir</div>
+        <div class="list">
+          ${futureRdv.length ? futureRdv.map(a => `
+            <div class="item" onclick="openAppointmentDetail(${a.id})">
+              <div class="name">${fmtDate(a.date)}</div>
+              <div class="muted">${esc(a.time || "Heure libre")}</div>
+              ${a.note ? `<div class="small" style="margin-top:6px">${esc(a.note)}</div>` : ``}
+            </div>
+          `).join("") : `<div class="muted">Aucun rendez-vous prévu.</div>`}
+        </div>
       </div>
 
       <div class="card">
@@ -1049,58 +1159,6 @@ function viewRelances(){
         <div class="section-title">Plus loin</div>
         <div class="list">
           ${later.length ? later.map(c => `<div class="item" onclick="go('client',{id:${c.id}})"><div class="name">${esc(c.name)}</div><div class="muted">${fmtDate(c.nextFollowUp)}</div></div>`).join("") : `<div class="muted">Aucune relance future.</div>`}
-        </div>
-      </div>
-    </div>
-  `;
-}
-
-function viewOrders(){
-  const rows = filteredOrders();
-  const pending = rows.filter(o => o.status==="pending");
-  const sent = rows.filter(o => o.status==="sent");
-  return `
-    ${header("Commandes", `${rows.length} commande(s)`)}
-    <div class="content">
-      <div class="card">
-        <div class="section-title">Filtre par date</div>
-        <input class="field" type="date" value="${esc(state.ordersDate)}" onchange="setOrdersDate(this.value)">
-        <button class="btn soft" style="margin-top:8px" onclick="setOrdersDate('')">Réinitialiser</button>
-      </div>
-
-      <div class="card">
-        <div class="section-title">À transmettre</div>
-        <div class="list">
-          ${pending.length ? pending.map(o => `
-            <div class="item" onclick="openOrderDetail(${o.clientId},${o.id})">
-              <div class="row">
-                <div>
-                  <div class="name">${esc(o.clientName)}</div>
-                  <div class="muted">${fmtDate(o.date)}</div>
-                </div>
-                <button class="btn secondary" onclick="event.stopPropagation(); toggleOrderStatus(${o.clientId},${o.id})">⬜</button>
-              </div>
-              <div class="small" style="margin-top:8px">${o.items.map(i => `${esc(productById(i.productId)?.name || "Vin")} x ${i.qty}`).join("<br>")}</div>
-            </div>
-          `).join("") : `<div class="muted">Aucune commande en attente.</div>`}
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="section-title">Déjà transmises</div>
-        <div class="list">
-          ${sent.length ? sent.map(o => `
-            <div class="item" onclick="openOrderDetail(${o.clientId},${o.id})">
-              <div class="row">
-                <div>
-                  <div class="name">${esc(o.clientName)}</div>
-                  <div class="muted">${fmtDate(o.date)}</div>
-                </div>
-                <button class="btn blue" onclick="event.stopPropagation(); toggleOrderStatus(${o.clientId},${o.id})">✅</button>
-              </div>
-              <div class="small" style="margin-top:8px">${o.items.map(i => `${esc(productById(i.productId)?.name || "Vin")} x ${i.qty}`).join("<br>")}</div>
-            </div>
-          `).join("") : `<div class="muted">Aucune commande transmise.</div>`}
         </div>
       </div>
     </div>
@@ -1245,100 +1303,120 @@ function viewMap(){
 }
 
 function viewTour(){
-  return `
-    ${header("Tournée du jour", `${data.tourList.length} étape(s)`)}
-    <div class="content">
-      <div class="card dark">
-        <div class="name">Tournée</div>
-        <div class="grid2" style="margin-top:8px">
-          <button class="btn secondary" onclick="openTourMaps()">GPS tournée</button>
-          <button class="btn secondary" onclick="go('map')">Carte</button>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="section-title">Enregistrer la tournée</div>
-        <input id="saved-tour-name" class="field" placeholder="Nom de la tournée">
-        <input id="saved-tour-date" class="field" type="date" style="margin-top:8px">
-        <button class="btn" style="margin-top:8px" onclick="saveCurrentTour()">Enregistrer la tournée</button>
-      </div>
-
-      <div class="card">
-        <div class="section-title">Ajouter à la tournée</div>
-        <input id="tour-search" class="field" placeholder="Rechercher un client..." value="${esc(state.tourSearch)}" oninput="setTourSearch(this.value)">
-        ${tourCandidates().length ? `<div class="suggestions">${tourCandidates().slice(0,6).map(c => `<div class="suggestion" onclick="addClientToTour(${c.id})">${esc(c.name)} · ${esc(c.city)}</div>`).join("")}</div>` : ``}
-      </div>
-
-      <div class="list">
-        ${data.tourList.map((t,i) => {
-          const c = clientById(t.id);
-          return `
-            <div class="card">
-              <div class="row">
-                <div>
-                  <div class="name">${i+1}. ${esc(c.name)}</div>
-                  <div class="muted">${esc(c.city)}</div>
-                </div>
-                <input class="field" style="width:90px" value="${esc(t.time || '')}" placeholder="heure" onchange="updateTourTime(${i}, this.value)">
-              </div>
-              <div class="grid2" style="margin-top:8px">
-                <button class="btn secondary" onclick="moveTourUp(${i})">⬆️</button>
-                <button class="btn secondary" onclick="moveTourDown(${i})">⬇️</button>
-                <button class="btn soft" onclick="go('client',{id:${c.id}})">Fiche</button>
-                <button class="btn secondary" onclick="window.open('${mapsUrl(c.address)}','_blank')">📍 Client</button>
-                <button class="btn red" onclick="removeFromTour(${c.id})">Supprimer</button>
-              </div>
-            </div>
-          `;
-        }).join("")}
-        ${!data.tourList.length ? `<div class="muted">Aucune tournée active.</div>` : ``}
-      </div>
-
-      <div class="card">
-        <div class="section-title">Tournées enregistrées</div>
-        <div class="list">
-          ${(data.savedTours||[]).length ? data.savedTours.map(t => `
-            <div class="item">
-              <div class="row">
-                <div>
-                  <div class="name">${esc(t.name)}</div>
-                  <div class="muted">${t.date ? fmtDate(t.date) : "Sans date"} · ${(t.tourList || []).length} étape(s)</div>
-                </div>
-              </div>
-              <div class="grid2" style="margin-top:8px">
-                <button class="btn blue" onclick="loadSavedTour(${t.id})">Charger</button>
-                <button class="btn secondary" onclick="openSavedTourEdit(${t.id})">Modifier</button>
-                <button class="btn red" onclick="deleteSavedTour(${t.id})">Supprimer</button>
-              </div>
-            </div>
-          `).join("") : `<div class="muted">Aucune tournée enregistrée.</div>`}
-        </div>
-      </div>
-    </div>
-  `;
-}
-
-function viewAppointments(){
-  const todayList = appointmentsToday();
-  const futureList = appointmentsUpcoming();
-  const monthLabel = new Date(state.calendarYear, state.calendarMonth, 1).toLocaleDateString("fr-FR", {month:"long", year:"numeric"});
-  const cells = getCalendarMatrix(state.calendarYear, state.calendarMonth);
+  const rdvToday = appointmentsToday();
+  const rdvFuture = appointmentsUpcoming();
+  const monthLabel = new Date(state.tourCalendarYear, state.tourCalendarMonth, 1).toLocaleDateString("fr-FR", {month:"long", year:"numeric"});
+  const cells = getCalendarMatrix(state.tourCalendarYear, state.tourCalendarMonth);
   const days = ["Lun","Mar","Mer","Jeu","Ven","Sam","Dim"];
-  const selectedList = appointmentsForDate(state.selectedCalendarDate);
+  const selectedList = appointmentsForDate(state.tourSelectedCalendarDate);
 
   return `
-    ${header("Rendez-vous", state.rdvView === "list" ? "Vue liste" : "Vue calendrier")}
+    ${header("Tournée & rendez-vous", `${data.tourList.length} étape(s) actives`)}
     <div class="content">
-      <div class="grid2">
-        <button class="btn ${state.rdvView === 'list' ? '' : 'secondary'}" onclick="setRdvView('list')">Liste</button>
-        <button class="btn ${state.rdvView === 'calendar' ? '' : 'secondary'}" onclick="setRdvView('calendar')">Calendrier</button>
+      <div class="grid3">
+        <button class="btn ${state.tourTab==='active'?'':'secondary'}" onclick="setTourTab('active')">Tournée</button>
+        <button class="btn ${state.tourTab==='list'?'':'secondary'}" onclick="setTourTab('list')">RDV liste</button>
+        <button class="btn ${state.tourTab==='calendar'?'':'secondary'}" onclick="setTourTab('calendar')">Calendrier</button>
       </div>
 
-      ${state.rdvView === "list" ? `
+      ${state.tourTab === "active" ? `
+        <div class="card dark">
+          <div class="name">Tournée du jour</div>
+          <div class="muted">${data.tourList.length} étape(s)</div>
+          <div class="grid2" style="margin-top:8px">
+            <button class="btn secondary" onclick="openTourMaps()">GPS tournée</button>
+            <button class="btn secondary" onclick="go('map')">Carte</button>
+          </div>
+        </div>
+
         <div class="card">
-          <div class="section-title">Aujourd’hui</div>
+          <div class="grid2">
+            <button class="btn" onclick="openCreateTourModal()">Créer une tournée</button>
+            <button class="btn secondary" onclick="openTourMaps()">Lancer l’itinéraire</button>
+          </div>
+        </div>
+
+        ${rdvToday.length ? `
+          <div class="card">
+            <div class="section-title">Rendez-vous du jour</div>
+            <div class="list">
+              ${rdvToday.map(a => {
+                const c = clientById(a.clientId);
+                const included = data.tourList.some(t => t.id === a.clientId);
+                return `
+                  <div class="item">
+                    <div class="row">
+                      <div>
+                        <div class="name">${esc(c?.name || "Client")}</div>
+                        <div class="muted">${esc(a.time || "Heure libre")} · ${esc(c?.city || "")}</div>
+                      </div>
+                      <button class="btn ${included ? 'red' : 'green'}" onclick="${included ? `removeFromTour(${a.clientId})` : `addClientToTour(${a.clientId})`}">${included ? '−' : '+'}</button>
+                    </div>
+                  </div>
+                `;
+              }).join("")}
+            </div>
+          </div>
+        ` : ``}
+
+        <div class="card">
+          <div class="section-title">Ajouter à la tournée</div>
+          <input id="tour-search" class="field" placeholder="Rechercher un client..." value="${esc(state.tourSearch)}" oninput="setTourSearch(this.value)">
+          ${tourCandidates().length ? `<div class="suggestions">${tourCandidates().slice(0,6).map(c => `<div class="suggestion" onclick="addClientToTour(${c.id})">${esc(c.name)} · ${esc(c.city)}</div>`).join("")}</div>` : `<div class="muted" style="margin-top:8px">Aucune suggestion.</div>`}
+        </div>
+
+        <div class="list">
+          ${data.tourList.map((t,i) => {
+            const c = clientById(t.id);
+            return `
+              <div class="card">
+                <div class="row">
+                  <div>
+                    <div class="name">${i+1}. ${esc(c?.name || "Client")}</div>
+                    <div class="muted">${esc(c?.city || "")}</div>
+                  </div>
+                  <input class="field" style="width:90px" value="${esc(t.time || '')}" placeholder="heure" onchange="updateTourTime(${i}, this.value)">
+                </div>
+                <div class="grid2" style="margin-top:8px">
+                  <button class="btn secondary" onclick="moveTourUp(${i})">⬆️</button>
+                  <button class="btn secondary" onclick="moveTourDown(${i})">⬇️</button>
+                  <button class="btn soft" onclick="go('client',{id:${c.id}})">Fiche</button>
+                  <button class="btn secondary" onclick="window.open('${mapsUrl(c.address)}','_blank')">📍 Client</button>
+                  <button class="btn red" onclick="removeFromTour(${c.id})">Supprimer</button>
+                </div>
+              </div>
+            `;
+          }).join("")}
+          ${!data.tourList.length ? `<div class="muted">Aucune tournée active.</div>` : ``}
+        </div>
+
+        <div class="card">
+          <div class="section-title">Tournées enregistrées</div>
           <div class="list">
-            ${todayList.length ? todayList.map(a => {
+            ${(data.savedTours||[]).length ? data.savedTours.map(t => `
+              <div class="item">
+                <div class="row">
+                  <div>
+                    <div class="name">${esc(t.name)}</div>
+                    <div class="muted">${t.date ? fmtDate(t.date) : "Sans date"} · ${(t.tourList || []).length} étape(s)</div>
+                  </div>
+                </div>
+                <div class="grid2" style="margin-top:8px">
+                  <button class="btn blue" onclick="loadSavedTour(${t.id})">Charger</button>
+                  <button class="btn secondary" onclick="openSavedTourEdit(${t.id})">Modifier</button>
+                  <button class="btn red" onclick="deleteSavedTour(${t.id})">Supprimer</button>
+                </div>
+              </div>
+            `).join("") : `<div class="muted">Aucune tournée enregistrée.</div>`}
+          </div>
+        </div>
+      ` : ""}
+
+      ${state.tourTab === "list" ? `
+        <div class="card">
+          <div class="section-title">Rendez-vous aujourd’hui</div>
+          <div class="list">
+            ${rdvToday.length ? rdvToday.map(a => {
               const c = clientById(a.clientId);
               return `<div class="item" onclick="openAppointmentDetail(${a.id})"><div class="name">${esc(c?.name || "Client")}</div><div class="muted">${esc(a.time || "Heure libre")} · ${esc(c?.city || "")}</div></div>`;
             }).join("") : `<div class="muted">Aucun rendez-vous aujourd’hui.</div>`}
@@ -1346,20 +1424,22 @@ function viewAppointments(){
         </div>
 
         <div class="card">
-          <div class="section-title">À venir</div>
+          <div class="section-title">Rendez-vous à venir</div>
           <div class="list">
-            ${futureList.length ? futureList.map(a => {
+            ${rdvFuture.length ? rdvFuture.map(a => {
               const c = clientById(a.clientId);
               return `<div class="item" onclick="openAppointmentDetail(${a.id})"><div class="name">${esc(c?.name || "Client")}</div><div class="muted">${fmtDate(a.date)} · ${esc(a.time || "Heure libre")} · ${esc(c?.city || "")}</div></div>`;
             }).join("") : `<div class="muted">Aucun rendez-vous à venir.</div>`}
           </div>
         </div>
-      ` : `
+      ` : ""}
+
+      ${state.tourTab === "calendar" ? `
         <div class="card">
           <div class="row">
-            <button class="btn secondary" onclick="setCalendarMonth(-1)">◀</button>
+            <button class="btn secondary" onclick="setTourCalendarMonth(-1)">◀</button>
             <div class="name">${esc(monthLabel)}</div>
-            <button class="btn secondary" onclick="setCalendarMonth(1)">▶</button>
+            <button class="btn secondary" onclick="setTourCalendarMonth(1)">▶</button>
           </div>
           <div class="calendar-head" style="margin-top:10px">
             ${days.map(d => `<div>${d}</div>`).join("")}
@@ -1367,10 +1447,10 @@ function viewAppointments(){
           <div class="calendar-grid">
             ${cells.map(d => {
               const dateStr = d.toISOString().slice(0,10);
-              const inMonth = d.getMonth() === state.calendarMonth;
+              const inMonth = d.getMonth() === state.tourCalendarMonth;
               const count = appointmentsForDate(dateStr).length;
               return `
-                <div class="calendar-cell ${inMonth ? '' : 'out'} ${state.selectedCalendarDate === dateStr ? 'active' : ''}" onclick="setSelectedCalendarDate('${dateStr}')">
+                <div class="calendar-cell ${inMonth ? '' : 'out'} ${state.tourSelectedCalendarDate === dateStr ? 'active' : ''}" onclick="setTourSelectedCalendarDate('${dateStr}')">
                   <div class="calendar-num">${d.getDate()}</div>
                   ${count ? `<div class="rdv-dot"></div><div class="muted">${count} rdv</div>` : ``}
                 </div>
@@ -1380,7 +1460,7 @@ function viewAppointments(){
         </div>
 
         <div class="card">
-          <div class="section-title">Rendez-vous du ${fmtDate(state.selectedCalendarDate)}</div>
+          <div class="section-title">Rendez-vous du ${fmtDate(state.tourSelectedCalendarDate)}</div>
           <div class="list">
             ${selectedList.length ? selectedList.map(a => {
               const c = clientById(a.clientId);
@@ -1388,7 +1468,7 @@ function viewAppointments(){
             }).join("") : `<div class="muted">Aucun rendez-vous ce jour-là.</div>`}
           </div>
         </div>
-      `}
+      ` : ""}
     </div>
   `;
 }
@@ -1462,6 +1542,7 @@ function viewStats(){
 
 function renderModal(){
   if(!state.modal) return "";
+
   if(state.modal.type==="orderDetail"){
     const c = clientById(state.modal.clientId);
     const o = c.orders.find(x => x.id===state.modal.orderId);
@@ -1557,8 +1638,9 @@ function renderModal(){
             <button class="btn secondary" onclick="applyRelance(${c.id},14)">+ 14 jours</button>
             <button class="btn secondary" onclick="applyRelance(${c.id},30)">+ 1 mois</button>
           </div>
-          <input id="relance-manual-date" class="field" type="date" style="margin-top:10px">
-          <button class="btn" style="margin-top:10px" onclick="applyRelanceManual(${c.id})">Date manuelle</button>
+          <label class="muted" style="display:block;margin-top:12px">Date manuelle de relance</label>
+          <input id="relance-manual-date" class="field" type="date" style="margin-top:6px">
+          <button class="btn" style="margin-top:10px" onclick="applyRelanceManual(${c.id})">Valider la date</button>
         </div>
       </div>
     `;
@@ -1574,8 +1656,10 @@ function renderModal(){
             <div><div class="name">Modifier la tournée</div><div class="muted">${esc(t.name)}</div></div>
             <button class="btn soft" onclick="closeModal()">Fermer</button>
           </div>
-          <input id="edit-saved-tour-name" class="field" value="${esc(t.name)}" style="margin-top:10px">
-          <input id="edit-saved-tour-date" class="field" type="date" value="${esc(t.date || "")}" style="margin-top:10px">
+          <label class="muted" style="display:block;margin-top:12px">Nom de la tournée</label>
+          <input id="edit-saved-tour-name" class="field" value="${esc(t.name)}" style="margin-top:6px">
+          <label class="muted" style="display:block;margin-top:12px">Date de la tournée</label>
+          <input id="edit-saved-tour-date" class="field" type="date" value="${esc(t.date || "")}" style="margin-top:6px">
           <div class="list" style="margin-top:10px">
             ${(t.tourList || []).map((step, idx) => {
               const c = clientById(step.id);
@@ -1608,9 +1692,12 @@ function renderModal(){
             <div><div class="name">Prévoir un rendez-vous</div><div class="muted">${esc(c.name)}</div></div>
             <button class="btn soft" onclick="closeModal()">Fermer</button>
           </div>
-          <input id="appointment-date" class="field" type="date" style="margin-top:10px">
-          <input id="appointment-time" class="field" type="time" style="margin-top:10px">
-          <textarea id="appointment-note" class="field" style="margin-top:10px" placeholder="Note"></textarea>
+          <label class="muted" style="display:block;margin-top:12px">Date du rendez-vous</label>
+          <input id="appointment-date" class="field" type="date" style="margin-top:6px">
+          <label class="muted" style="display:block;margin-top:12px">Heure du rendez-vous</label>
+          <input id="appointment-time" class="field" type="time" style="margin-top:6px">
+          <label class="muted" style="display:block;margin-top:12px">Note éventuelle</label>
+          <textarea id="appointment-note" class="field" style="margin-top:6px" placeholder="Ex: dégustation, commande, cave, terrasse..."></textarea>
           <button class="btn" style="margin-top:10px" onclick="createAppointment(${c.id})">Créer le rendez-vous</button>
         </div>
       </div>
@@ -1656,10 +1743,50 @@ function renderModal(){
             <div><div class="name">Modifier le rendez-vous</div><div class="muted">${esc(c?.name || "Client")}</div></div>
             <button class="btn soft" onclick="closeModal()">Fermer</button>
           </div>
-          <input id="edit-appointment-date" class="field" type="date" value="${esc(a.date)}" style="margin-top:10px">
-          <input id="edit-appointment-time" class="field" type="time" value="${esc(a.time || "")}" style="margin-top:10px">
-          <textarea id="edit-appointment-note" class="field" style="margin-top:10px" placeholder="Note">${esc(a.note || "")}</textarea>
+          <label class="muted" style="display:block;margin-top:12px">Date du rendez-vous</label>
+          <input id="edit-appointment-date" class="field" type="date" value="${esc(a.date)}" style="margin-top:6px">
+          <label class="muted" style="display:block;margin-top:12px">Heure du rendez-vous</label>
+          <input id="edit-appointment-time" class="field" type="time" value="${esc(a.time || "")}" style="margin-top:6px">
+          <label class="muted" style="display:block;margin-top:12px">Note éventuelle</label>
+          <textarea id="edit-appointment-note" class="field" style="margin-top:6px" placeholder="Note">${esc(a.note || "")}</textarea>
           <button class="btn" style="margin-top:10px" onclick="saveAppointmentEdit(${a.id})">Enregistrer</button>
+        </div>
+      </div>
+    `;
+  }
+
+  if(state.modal.type==="createTour"){
+    return `
+      <div class="modal-backdrop" onclick="closeModal()">
+        <div class="modal" onclick="event.stopPropagation()">
+          <div class="row">
+            <div><div class="name">Créer une tournée</div><div class="muted">Nom, date, clients et rendez-vous du jour choisi</div></div>
+            <button class="btn soft" onclick="closeModal()">Fermer</button>
+          </div>
+
+          <label class="muted" style="display:block;margin-top:12px">Nom de la tournée</label>
+          <input id="create-tour-name" class="field" placeholder="Ex: Lundi cavistes" style="margin-top:6px">
+
+          <label class="muted" style="display:block;margin-top:12px">Date de la tournée</label>
+          <input id="create-tour-date" class="field" type="date" style="margin-top:6px" onchange="refreshCreateTourSuggestions()">
+
+          <label class="muted" style="display:block;margin-top:12px">Rechercher un client à ajouter</label>
+          <input id="create-tour-search" class="field" placeholder="Nom, ville..." style="margin-top:6px" oninput="refreshCreateTourSuggestions()">
+          <div id="create-tour-suggestions" class="suggestions" style="margin-top:8px"></div>
+
+          <div class="card" style="margin-top:12px;padding:12px">
+            <div class="name">Rendez-vous déjà prévus ce jour-là</div>
+            <div id="create-tour-rdv-suggestions" class="list" style="margin-top:8px">
+              <div class="muted">Choisis une date pour afficher les rendez-vous déjà prévus.</div>
+            </div>
+          </div>
+
+          <div class="card" style="margin-top:12px;padding:12px">
+            <div class="name">Clients de la tournée</div>
+            <div id="create-tour-selected" class="list" style="margin-top:8px"></div>
+          </div>
+
+          <button class="btn" style="margin-top:10px" onclick="saveCreatedTour()">Enregistrer la tournée</button>
         </div>
       </div>
     `;
@@ -1679,7 +1806,6 @@ function renderNav(){
     ["home","Accueil"],
     ["clients","Clients"],
     ["relances","Relances"],
-    ["appointments","RDV"],
     ["products","Vins"],
     ["map","Carte"],
     ["tour","Tournée"],
@@ -1702,8 +1828,6 @@ function render(){
   if(state.screen==="clientCreate") html = viewClientCreate();
   if(state.screen==="client") html = viewClient(state.params.id);
   if(state.screen==="relances") html = viewRelances();
-  if(state.screen==="appointments") html = viewAppointments();
-  if(state.screen==="orders") html = viewOrders();
   if(state.screen==="products") html = viewProducts();
   if(state.screen==="product") html = viewProduct(state.params.id);
   if(state.screen==="map") html = viewMap();
@@ -1729,6 +1853,10 @@ function render(){
       }
     }
   }
+
+  if(state.modal && state.modal.type === "createTour"){
+    setTimeout(refreshCreateTourSuggestions, 0);
+  }
 }
 
 function setClientSearch(v){ state.clientSearch = v; render(); }
@@ -1738,7 +1866,9 @@ function setOrdersDate(v){ state.ordersDate = v; render(); }
 function setPeriod(v){ state.period = v; render(); }
 function setManualStart(v){ state.manualStart = v; render(); }
 function setManualEnd(v){ state.manualEnd = v; render(); }
-function setRdvView(v){ state.rdvView = v; render(); }
+function setTourTab(v){ state.tourTab = v; render(); }
+function setTourCalendarMonthWrapper(offset){ setTourCalendarMonth(offset); }
+function setTourSelectedCalendarDateWrapper(date){ setTourSelectedCalendarDate(date); }
 function closeModal(){ state.modal = null; render(); }
 
 window.go = go;
@@ -1749,9 +1879,9 @@ window.setOrdersDate = setOrdersDate;
 window.setPeriod = setPeriod;
 window.setManualStart = setManualStart;
 window.setManualEnd = setManualEnd;
-window.setRdvView = setRdvView;
-window.setCalendarMonth = setCalendarMonth;
-window.setSelectedCalendarDate = setSelectedCalendarDate;
+window.setTourTab = setTourTab;
+window.setTourCalendarMonth = setTourCalendarMonthWrapper;
+window.setTourSelectedCalendarDate = setTourSelectedCalendarDateWrapper;
 
 window.createClient = createClient;
 window.saveClientEdits = saveClientEdits;
@@ -1792,6 +1922,12 @@ window.deleteSavedTour = deleteSavedTour;
 window.openSavedTourEdit = openSavedTourEdit;
 window.saveSavedTourEdit = saveSavedTourEdit;
 window.removeClientFromSavedTour = removeClientFromSavedTour;
+
+window.openCreateTourModal = openCreateTourModal;
+window.refreshCreateTourSuggestions = refreshCreateTourSuggestions;
+window.addClientToCreateTour = addClientToCreateTour;
+window.removeClientFromCreateTour = removeClientFromCreateTour;
+window.saveCreatedTour = saveCreatedTour;
 
 window.openTourMaps = openTourMaps;
 window.toggleMapSelectionMode = toggleMapSelectionMode;
