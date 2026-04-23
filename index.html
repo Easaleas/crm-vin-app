@@ -38,7 +38,7 @@
     .badge.prospect{background:#fff2cc;color:#8a6400}
     .badge.inactif{background:#eee;color:#555}
     .nav{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid var(--border);padding:8px}
-    .nav-inner{max-width:430px;margin:0 auto;display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+    .nav-inner{max-width:430px;margin:0 auto;display:grid;grid-template-columns:repeat(8,1fr);gap:6px}
     .tab{border:none;background:transparent;padding:8px 4px;border-radius:10px;font-size:11px;color:#666}
     .tab.active{background:#111;color:#fff}
     .suggestions{display:flex;flex-direction:column;gap:6px;margin-top:8px}
@@ -53,13 +53,36 @@
     .periods{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
     .modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.4);display:flex;align-items:flex-end;justify-content:center;z-index:30}
     .modal{width:100%;max-width:430px;background:#fff;border-radius:16px 16px 0 0;padding:14px;max-height:85vh;overflow:auto}
+    .mapbox{
+      position:relative;height:360px;border-radius:14px;overflow:hidden;
+      background:linear-gradient(135deg,#d7dde5,#edf0f4);border:1px solid var(--border)
+    }
+    .mapgrid{
+      position:absolute;inset:0;opacity:.35;
+      background-image:
+        linear-gradient(90deg, rgba(255,255,255,.8) 1px, transparent 1px),
+        linear-gradient(rgba(255,255,255,.8) 1px, transparent 1px);
+      background-size:36px 36px;
+    }
+    .pin{
+      position:absolute;width:20px;height:20px;border-radius:50%;
+      border:4px solid #fff;box-shadow:0 4px 10px rgba(0,0,0,.15);cursor:pointer;
+      transform:translate(-50%,-50%);
+    }
+    .pin.client{background:#22c55e}
+    .pin.prospect{background:#f59e0b}
+    .pin.inactif{background:#9ca3af}
+    .pin.selected{box-shadow:0 0 0 4px rgba(17,17,17,.2), 0 4px 10px rgba(0,0,0,.2)}
+    .map-legend{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+    .legend-item{display:flex;align-items:center;gap:6px;font-size:12px;color:#555}
+    .legend-dot{width:12px;height:12px;border-radius:50%}
   </style>
 </head>
 <body>
 <div id="app" class="app"></div>
 
 <script>
-const STORAGE_KEY = "crm_vin_final_stable_v3";
+const STORAGE_KEY = "crm_vin_final_stable_v4_map";
 const today = new Date().toISOString().slice(0,10);
 
 const defaultData = {
@@ -79,6 +102,8 @@ const defaultData = {
       notes:"Bon client actif.",
       lastVisit:"2026-04-20",
       nextFollowUp:"2026-05-11",
+      mapX:20,
+      mapY:78,
       tastings:[
         {id:1,date:"2026-04-20",productId:1,rating:5,comment:"Très bon retour"}
       ],
@@ -106,6 +131,50 @@ const defaultData = {
       notes:"Aime Collines et Allegro.",
       lastVisit:"",
       nextFollowUp:"2026-04-24",
+      mapX:78,
+      mapY:26,
+      tastings:[],
+      orders:[],
+      history:[]
+    },
+    {
+      id:3,
+      name:"La Cave du Centre",
+      type:"Caviste",
+      tariff:"Caviste",
+      status:"client",
+      city:"Béziers",
+      zone:"Hérault",
+      address:"Centre Béziers",
+      phone:"",
+      email:"",
+      contact:"",
+      notes:"",
+      lastVisit:"",
+      nextFollowUp:"",
+      mapX:36,
+      mapY:55,
+      tastings:[],
+      orders:[],
+      history:[]
+    },
+    {
+      id:4,
+      name:"Le Comptoir",
+      type:"CHR",
+      tariff:"CHR",
+      status:"prospect",
+      city:"Montpellier",
+      zone:"Hérault",
+      address:"Montpellier centre",
+      phone:"",
+      email:"",
+      contact:"",
+      notes:"",
+      lastVisit:"",
+      nextFollowUp:"",
+      mapX:70,
+      mapY:40,
       tastings:[],
       orders:[],
       history:[]
@@ -136,7 +205,9 @@ let state = {
   manualStart:"",
   manualEnd:"",
   modal:null,
-  tastingDraft:{}
+  tastingDraft:{},
+  mapSelectionMode:false,
+  mapSelectedClientIds:[]
 };
 
 function loadData(){
@@ -268,6 +339,8 @@ function createClient(){
     notes:document.getElementById("new-client-notes").value.trim(),
     lastVisit:"",
     nextFollowUp:"",
+    mapX:50,
+    mapY:50,
     tastings:[],
     orders:[],
     history:[{id:nextHistoryId(),date:today,type:"création",text:"Fiche créée manuellement"}]
@@ -440,6 +513,36 @@ function moveTourDown(index){
 function updateTourTime(index, value){
   data.tourList[index].time = value;
   saveData();
+}
+
+function toggleMapSelectionMode(){
+  state.mapSelectionMode = !state.mapSelectionMode;
+  if(!state.mapSelectionMode) state.mapSelectedClientIds = [];
+  render();
+}
+function mapPinClick(clientId){
+  if(state.mapSelectionMode){
+    if(state.mapSelectedClientIds.includes(clientId)){
+      state.mapSelectedClientIds = state.mapSelectedClientIds.filter(id => id !== clientId);
+    }else{
+      state.mapSelectedClientIds.push(clientId);
+    }
+    render();
+    return;
+  }
+  go("client",{id:clientId});
+}
+function removeMapSelectedClient(clientId){
+  state.mapSelectedClientIds = state.mapSelectedClientIds.filter(id => id !== clientId);
+  render();
+}
+function launchTourFromMap(){
+  if(!state.mapSelectedClientIds.length) return alert("Sélectionne au moins un client.");
+  data.tourList = state.mapSelectedClientIds.map(id => ({id,time:""}));
+  state.mapSelectionMode = false;
+  state.mapSelectedClientIds = [];
+  saveData();
+  go("tour");
 }
 
 function productStats(productId){
@@ -883,6 +986,60 @@ function viewProduct(id){
   `;
 }
 
+function viewMap(){
+  return `
+    ${header("Carte clients", state.mapSelectionMode ? "Mode sélection tournée" : "Cliquer sur un client pour ouvrir sa fiche")}
+    <div class="content">
+      <div class="card">
+        <div class="grid2">
+          <button class="btn ${state.mapSelectionMode ? 'blue' : ''}" onclick="toggleMapSelectionMode()">${state.mapSelectionMode ? "Annuler la sélection" : "Créer tournée via la carte"}</button>
+          ${state.mapSelectionMode ? `<button class="btn" onclick="launchTourFromMap()">Lancer la tournée</button>` : `<button class="btn secondary" onclick="go('tour')">Voir la tournée</button>`}
+        </div>
+
+        <div class="mapbox" style="margin-top:10px">
+          <div class="mapgrid"></div>
+          ${data.clients.map(c => `
+            <button
+              class="pin ${esc(c.status)} ${state.mapSelectedClientIds.includes(c.id) ? 'selected' : ''}"
+              style="left:${c.mapX || 50}%; top:${c.mapY || 50}%"
+              onclick="mapPinClick(${c.id})"
+              title="${esc(c.name)}"
+            ></button>
+          `).join("")}
+        </div>
+
+        <div class="map-legend">
+          <div class="legend-item"><span class="legend-dot" style="background:#22c55e"></span> client</div>
+          <div class="legend-item"><span class="legend-dot" style="background:#f59e0b"></span> prospect</div>
+          <div class="legend-item"><span class="legend-dot" style="background:#9ca3af"></span> inactif</div>
+        </div>
+      </div>
+
+      ${state.mapSelectionMode ? `
+        <div class="card">
+          <div class="section-title">Clients sélectionnés</div>
+          <div class="list">
+            ${state.mapSelectedClientIds.length ? state.mapSelectedClientIds.map(id => {
+              const c = clientById(id);
+              return `
+                <div class="item">
+                  <div class="row">
+                    <div>
+                      <div class="name">${esc(c.name)}</div>
+                      <div class="muted">${esc(c.city)}</div>
+                    </div>
+                    <button class="btn red" onclick="removeMapSelectedClient(${c.id})">Retirer</button>
+                  </div>
+                </div>
+              `;
+            }).join("") : `<div class="muted">Aucun client sélectionné.</div>`}
+          </div>
+        </div>
+      ` : ``}
+    </div>
+  `;
+}
+
 function viewTour(){
   const candidates = tourCandidates();
   return `
@@ -1089,6 +1246,7 @@ function renderNav(){
     ["relances","Relances"],
     ["orders","Cmd"],
     ["products","Vins"],
+    ["map","Carte"],
     ["tour","Tournée"],
     ["stats","Stats"]
   ];
@@ -1112,6 +1270,7 @@ function render(){
   if(state.screen==="orders") html = viewOrders();
   if(state.screen==="products") html = viewProducts();
   if(state.screen==="product") html = viewProduct(state.params.id);
+  if(state.screen==="map") html = viewMap();
   if(state.screen==="tour") html = viewTour();
   if(state.screen==="stats") html = viewStats();
 
@@ -1175,6 +1334,10 @@ window.moveTourUp = moveTourUp;
 window.moveTourDown = moveTourDown;
 window.updateTourTime = updateTourTime;
 window.openTourMaps = openTourMaps;
+window.toggleMapSelectionMode = toggleMapSelectionMode;
+window.mapPinClick = mapPinClick;
+window.removeMapSelectedClient = removeMapSelectedClient;
+window.launchTourFromMap = launchTourFromMap;
 window.openProductClients = openProductClients;
 window.exportJSON = exportJSON;
 window.exportClientsCSV = exportClientsCSV;
