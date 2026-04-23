@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CRM Vin</title>
+  <meta name="theme-color" content="#111111" />
+  <style>
+    :root{
+      --bg:#f5f5f5; --card:#ffffff; --text:#111111; --muted:#6b7280;
+      --border:#e5e7eb; --accent:#111111; --ok:#16a34a; --warn:#d97706; --soft:#f3f4f6;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:var(--text)}
+    .app{max-width:430px;margin:0 auto;min-height:100vh;background:var(--bg);padding-bottom:84px}
+    .header{position:sticky;top:0;background:#fff;border-bottom:1px solid var(--border);padding:16px;z-index:10}
+    .title{font-size:22px;font-weight:700;margin:0}
+    .subtitle{font-size:12px;color:var(--muted);margin-top:4px}
+    .content{padding:16px;display:flex;flex-direction:column;gap:16px}
+    .card{background:var(--card);border:1px solid var(--border);border-radius:22px;padding:16px}
+    .dark{background:#111;color:#fff;border-color:#111}
+    .dark .subtitle{color:#d1d5db}
+    .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+    .grid2{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+    .stat{font-size:28px;font-weight:700}
+    .muted{color:var(--muted);font-size:12px}
+    .btn{border:none;border-radius:16px;padding:12px 14px;font-weight:600;cursor:pointer;background:#111;color:#fff}
+    .btn.secondary{background:#fff;color:#111;border:1px solid var(--border)}
+    .btn.soft{background:var(--soft);color:#111}
+    .row{display:flex;align-items:center;justify-content:space-between;gap:12px}
+    .list{display:flex;flex-direction:column;gap:10px}
+    .item{background:#fff;border:1px solid var(--border);border-radius:18px;padding:14px;cursor:pointer}
+    .item .name{font-weight:700;font-size:15px}
+    .item .meta{font-size:12px;color:var(--muted);margin-top:4px}
+    .badge{display:inline-block;padding:6px 10px;border-radius:999px;font-size:12px;font-weight:700}
+    .client{background:#dcfce7;color:#166534}
+    .prospect{background:#fef3c7;color:#92400e}
+    .inactive{background:#e5e7eb;color:#374151}
+    .section-title{font-size:16px;font-weight:700;margin:0 0 10px}
+    .actions{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+    .field{width:100%;padding:12px 14px;border-radius:16px;border:1px solid var(--border);background:#fff;font:inherit}
+    textarea.field{min-height:90px;resize:vertical}
+    .timeline{display:flex;flex-direction:column;gap:12px}
+    .timeline-item{display:flex;gap:10px}
+    .dot{width:10px;height:10px;border-radius:50%;background:#111;margin-top:5px;flex:0 0 auto}
+    .mapbox{height:420px;border-radius:22px;background:linear-gradient(135deg,#d1d5db,#e5e7eb);position:relative;overflow:hidden;border:1px solid var(--border)}
+    .pin{position:absolute;width:18px;height:18px;border-radius:50%;border:4px solid #fff;box-shadow:0 4px 10px rgba(0,0,0,.15)}
+    .pin.client{background:#22c55e}
+    .pin.prospect{background:#f59e0b}
+    .pin.inactive{background:#6b7280}
+    .nav{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--border);padding:10px 8px}
+    .nav-inner{max-width:430px;margin:0 auto;display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+    .tab{border:none;background:transparent;border-radius:16px;padding:10px 6px;font-size:11px;color:var(--muted);cursor:pointer}
+    .tab.active{background:#111;color:#fff;font-weight:700}
+    .small{font-size:13px}
+  </style>
+</head>
+<body>
+  <div class="app" id="app"></div>
+
+  <script>
+    const today = "2026-04-23";
+
+    let clients = [
+      {
+        id: 1,
+        name: "Au fil de l’aire",
+        type: "CHR",
+        tariff: "CHR",
+        status: "client",
+        city: "Les Aires",
+        zone: "Hérault",
+        address: "1 Pl. de l'Aire, 34600 Les Aires",
+        phone: "0658269126",
+        email: "julien.marine.aufildelaire@gmail.com",
+        contact: "Julien & Marine",
+        notes: "Adore Collines. Bon client actif.",
+        products: ["Collines rouge", "Blanc", "Rosé"],
+        lastVisit: "2026-04-20",
+        nextFollowUp: "2026-05-11",
+        history: [
+          { date: "2026-04-20", type: "commande", text: "Commande Collines rouge, blanc, rosé" },
+          { date: "2025-12-09", type: "visite", text: "Passage et dégustation, très bon retour" }
+        ],
+        orders: [{ date: "2026-04-20", products: "Collines rouge, blanc, rosé", qty: "24 bouteilles" }]
+      },
+      {
+        id: 2,
+        name: "Oli'vins",
+        type: "Caviste",
+        tariff: "Caviste",
+        status: "prospect",
+        city: "Mauguio",
+        zone: "Hérault",
+        address: "248 Bd de la Démocratie, 34130 Mauguio",
+        phone: "0685842191",
+        email: "",
+        contact: "",
+        notes: "Aime Collines, Grande Réserve, Allegro.",
+        products: ["Collines", "Grande Réserve", "Allegro"],
+        lastVisit: "2026-04-02",
+        nextFollowUp: "2026-04-23",
+        history: [
+          { date: "2023-11-15", type: "rdv", text: "Rendez-vous + mail" },
+          { date: "2026-04-02", type: "visite", text: "Revoir début de saison" }
+        ],
+        orders: []
+      },
+      {
+        id: 3,
+        name: "La Cave d'Occitanie",
+        type: "Caviste",
+        tariff: "Caviste",
+        status: "prospect",
+        city: "Baillargues",
+        zone: "Hérault",
+        address: "259 Rue Jean Baptiste Calvignac, 34670 Baillargues",
+        phone: "0467690255",
+        email: "contact@cavedoccitanie.fr",
+        contact: "Stéphane Lebesgue",
+        notes: "Continuer de passer pour trouver une date.",
+        products: ["Tournée Générale", "Allegro"],
+        lastVisit: "2026-04-10",
+        nextFollowUp: "2026-05-01",
+        history: [
+          { date: "2026-03-20", type: "appel", text: "Échange avec le caviste" },
+          { date: "2026-04-10", type: "visite", text: "Passage en cave, à relancer" }
+        ],
+        orders: []
+      },
+      {
+        id: 4,
+        name: "La nona",
+        type: "CHR",
+        tariff: "CHR",
+        status: "client",
+        city: "Faugères",
+        zone: "Hérault",
+        address: "880 Rte de Pézenas, 34600 Faugères",
+        phone: "",
+        email: "",
+        contact: "Maxime",
+        notes: "Jeune, sympa, commande régulièrement.",
+        products: ["Allegro", "Tournée Générale"],
+        lastVisit: "2026-04-18",
+        nextFollowUp: "2026-05-09",
+        history: [
+          { date: "2026-04-18", type: "visite", text: "Passage, bon échange" },
+          { date: "2026-04-05", type: "commande", text: "Commande réassort" }
+        ],
+        orders: [{ date: "2026-04-05", products: "Allegro, TG", qty: "18 bouteilles" }]
+      },
+      {
+        id: 5,
+        name: "Vins d’oc et d’ailleurs",
+        type: "Caviste",
+        tariff: "Caviste",
+        status: "inactif",
+        city: "Agde",
+        zone: "Hérault",
+        address: "31 Av. Général de Gaulle, 34300 Agde",
+        phone: "",
+        email: "",
+        contact: "",
+        notes: "Ancien contact. A aimé Allegro, Collines rouge, Castel. Ne prend plus.",
+        products: ["Allegro", "Collines rouge", "Castel"],
+        lastVisit: "2025-03-14",
+        nextFollowUp: "",
+        history: [
+          { date: "2024-06-04", type: "commande", text: "Première commande" },
+          { date: "2025-03-14", type: "relance", text: "Ne prend plus" }
+        ],
+        orders: [{ date: "2024-06-04", products: "Première commande", qty: "Non précisé" }]
+      }
+    ];
+
+    let screen = "home";
+    let selectedId = 1;
+    let search = "";
+
+    function fmtDate(v) {
+      if (!v) return "—";
+      return new Date(v).toLocaleDateString("fr-FR");
+    }
+
+    function addDays(dateStr, days) {
+      const d = new Date(dateStr);
+      d.setDate(d.getDate() + days);
+      return d.toISOString().slice(0, 10);
+    }
+
+    function selectedClient() {
+      return clients.find(c => c.id === selectedId) || clients[0];
+    }
+
+    function dueToday() {
+      return clients
+        .filter(c => c.nextFollowUp && c.nextFollowUp <= today)
+        .sort((a,b) => a.nextFollowUp.localeCompare(b.nextFollowUp));
+    }
+
+    function dueSoon() {
+      return clients
+        .filter(c => c.nextFollowUp && c.nextFollowUp > today && c.nextFollowUp <= "2026-04-30")
+        .sort((a,b) => a.nextFollowUp.localeCompare(b.nextFollowUp));
+    }
+
+    function filteredClients() {
+      return clients.filter(c => {
+        const hay = `${c.name} ${c.city} ${c.type} ${c.status} ${c.notes}`.toLowerCase();
+        return hay.includes(search.toLowerCase());
+      });
+    }
+
+    function openClient(id) {
+      selectedId = id;
+      screen = "client";
+      render();
+    }
+
+    function markVisited(id, customDays = 21) {
+      clients = clients.map(c => c.id === id ? {
+        ...c,
+        lastVisit: today,
+        nextFollowUp: addDays(today, customDays),
+        history: [
+          { date: today, type: "visite", text: `Client visité · relance fixée à ${customDays} jours` },
+          ...c.history
+        ]
+      } : c);
+      render();
+    }
+
+    function postponeFollowUp(id, days) {
+      clients = clients.map(c => c.id === id ? { ...c, nextFollowUp: addDays(today, days) } : c);
+      render();
+    }
+
+    function addNote() {
+      const textarea = document.getElementById("new-note");
+      if (!textarea || !textarea.value.trim()) return;
+      const val = textarea.value.trim();
+      clients = clients.map(c => c.id === selectedId ? {
+        ...c,
+        history: [{ date: today, type: "note", text: val }, ...c.history]
+      } : c);
+      render();
+    }
+
+    function addOrder() {
+      const products = document.getElementById("order-products")?.value.trim() || "";
+      const qty = document.getElementById("order-qty")?.value.trim() || "Non précisé";
+      if (!products) return;
+      clients = clients.map(c => c.id === selectedId ? {
+        ...c,
+        orders: [{ date: today, products, qty }, ...c.orders],
+        history: [{ date: today, type: "commande", text: `${products} · ${qty}` }, ...c.history]
+      } : c);
+      render();
+    }
+
+    function mapsUrl(address) {
+      return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
+    }
+
+    function wazeUrl(address) {
+      return `https://waze.com/ul?q=${encodeURIComponent(address)}&navigate=yes`;
+    }
+
+    function statusBadge(status) {
+      const cls = status === "client" ? "client" : status === "prospect" ? "prospect" : "inactive";
+      return `<span class="badge ${cls}">${status}</span>`;
+    }
+
+    function homeView() {
+      const urgent = dueToday();
+      const tour = clients.filter(c => [1,2,3,4].includes(c.id));
+      return `
+        <div class="header">
+          <h1 class="title">Bonjour 👋</h1>
+          <div class="subtitle">Jeudi 23 avril · terrain</div>
+        </div>
+        <div class="content">
+          <div class="card dark">
+            <div class="subtitle">Aujourd’hui</div>
+            <div style="font-size:28px;font-weight:700;margin-top:6px;">4 étapes en tournée</div>
+            <div class="subtitle" style="margin-top:6px;">118 km estimés · ${urgent.length} relance(s) urgente(s)</div>
+            <div class="grid2" style="margin-top:14px;">
+              <button class="btn secondary" onclick="go('tour')">Tournée</button>
+              <button class="btn secondary" onclick="go('relances')">Relances</button>
+            </div>
+          </div>
+
+          <div class="grid3">
+            <div class="card"><div class="stat">${clients.filter(c => c.status==='client').length}</div><div class="muted">Clients</div></div>
+            <div class="card"><div class="stat">${urgent.length}</div><div class="muted">Relances urgentes</div></div>
+            <div class="card"><div class="stat">${tour.length}</div><div class="muted">Tournée du jour</div></div>
+          </div>
+
+          <div class="card">
+            <div class="section-title">Relances du jour</div>
+            <div class="list">
+              ${urgent.length ? urgent.map(c => `
+                <div class="item" onclick="openClient(${c.id})">
+                  <div class="row">
+                    <div>
+                      <div class="name">${c.name}</div>
+                      <div class="meta">${c.city} · ${c.type}</div>
+                    </div>
+                    ${statusBadge(c.status)}
+                  </div>
+                </div>`).join("") : `<div class="muted">Aucune relance urgente.</div>`}
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function clientsView() {
+      const list = filteredClients();
+      return `
+        <div class="header">
+          <h1 class="title">Clients & prospects</h1>
+          <div class="subtitle">${list.length} fiches</div>
+        </div>
+        <div class="content">
+          <input class="field" placeholder="Rechercher un client, une ville..." value="${search.replace(/"/g,'&quot;')}" oninput="setSearch(this.value)" />
+          <div class="list">
+            ${list.map(c => `
+              <div class="item" onclick="openClient(${c.id})">
+                <div class="row">
+                  <div>
+                    <div class="name">${c.name}</div>
+                    <div class="meta">${c.city} · ${c.type} · Tarif ${c.tariff}</div>
+                    <div class="small" style="margin-top:8px;">${c.notes}</div>
+                  </div>
+                  ${statusBadge(c.status)}
+                </div>
+              </div>
+            `).join("")}
+          </div>
+        </div>
+      `;
+    }
+
+    function clientView() {
+      const c = selectedClient();
+      return `
+        <div class="header">
+          <div class="row">
+            <button class="btn soft" onclick="go('clients')">Retour</button>
+            <div style="text-align:right;">
+              <h1 class="title" style="font-size:20px;">${c.name}</h1>
+              <div class="subtitle">${c.type} · Tarif ${c.tariff}</div>
+            </div>
+          </div>
+        </div>
+        <div class="content">
+          <div class="card">
+            <div class="row">
+              <div>
+                <div class="name">${c.contact || "Contact à compléter"}</div>
+                <div class="meta">${c.city} · ${c.zone}</div>
+              </div>
+              ${statusBadge(c.status)}
+            </div>
+            <div class="actions" style="margin-top:14px;">
+              <a class="btn" href="${c.phone ? `tel:${c.phone}` : '#'}">Appeler</a>
+              <a class="btn secondary" target="_blank" href="${mapsUrl(c.address)}">Maps</a>
+              <a class="btn secondary" target="_blank" href="${wazeUrl(c.address)}">Waze</a>
+              <a class="btn secondary" href="${c.email ? `mailto:${c.email}` : '#'}">Email</a>
+            </div>
+            <div class="card" style="padding:12px;margin-top:14px;background:#fafafa;">
+              <div class="muted">Adresse</div>
+              <div class="small" style="margin-top:6px;font-weight:700;">${c.address}</div>
+            </div>
+            <div class="grid2" style="margin-top:12px;">
+              <div class="card" style="padding:12px;background:#fafafa;">
+                <div class="muted">Dernière visite</div>
+                <div class="small" style="margin-top:6px;font-weight:700;">${fmtDate(c.lastVisit)}</div>
+              </div>
+              <div class="card" style="padding:12px;background:#fff7ed;border-color:#fed7aa;">
+                <div class="muted">Prochaine relance</div>
+                <div class="small" style="margin-top:6px;font-weight:700;">${fmtDate(c.nextFollowUp)}</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="section-title">Actions rapides</div>
+            <div class="grid2">
+              <button class="btn" onclick="markVisited(${c.id},21)">Visité</button>
+              <button class="btn secondary" onclick="postponeFollowUp(${c.id},7)">+ 7 jours</button>
+              <button class="btn secondary" onclick="postponeFollowUp(${c.id},14)">+ 14 jours</button>
+              <button class="btn secondary" onclick="postponeFollowUp(${c.id},30)">+ 1 mois</button>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="section-title">Nouvelle note</div>
+            <textarea id="new-note" class="field" placeholder="Ex : très bon échange, aime Allegro, repasser fin mai..."></textarea>
+            <button class="btn" style="margin-top:10px;width:100%;" onclick="addNote()">Ajouter la note</button>
+          </div>
+
+          <div class="card">
+            <div class="section-title">Nouvelle commande</div>
+            <input id="order-products" class="field" placeholder="Produits" />
+            <input id="order-qty" class="field" placeholder="Quantités" style="margin-top:10px;" />
+            <button class="btn" style="margin-top:10px;width:100%;" onclick="addOrder()">Ajouter la commande</button>
+          </div>
+
+          <div class="card">
+            <div class="section-title">Historique</div>
+            <div class="timeline">
+              ${c.history.map(h => `
+                <div class="timeline-item">
+                  <div class="dot"></div>
+                  <div>
+                    <div class="name" style="font-size:14px;text-transform:capitalize;">${h.type}</div>
+                    <div class="meta">${fmtDate(h.date)}</div>
+                    <div class="small" style="margin-top:6px;">${h.text}</div>
+                  </div>
+                </div>
+              `).join("")}
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function relancesView() {
+      const urgent = dueToday();
+      const soon = dueSoon();
+      return `
+        <div class="header">
+          <h1 class="title">Relances</h1>
+          <div class="subtitle">${clients.filter(c => c.nextFollowUp).length} clients suivis</div>
+        </div>
+        <div class="content">
+          <div class="card" style="background:#fef2f2;border-color:#fecaca;">
+            <div class="name">Aujourd’hui</div>
+            <div class="small" style="margin-top:6px;">${urgent.length} relance(s) à traiter</div>
+          </div>
+
+          <div class="list">
+            ${urgent.map(c => `
+              <div class="card">
+                <div class="row">
+                  <div>
+                    <div class="name">${c.name}</div>
+                    <div class="meta">${c.city} · ${fmtDate(c.nextFollowUp)}</div>
+                  </div>
+                  <span class="badge prospect">Urgent</span>
+                </div>
+                <div class="grid2" style="margin-top:12px;">
+                  <a class="btn secondary" href="${c.phone ? `tel:${c.phone}` : '#'}">Appeler</a>
+                  <a class="btn secondary" target="_blank" href="${mapsUrl(c.address)}">Itinéraire</a>
+                  <button class="btn" onclick="markVisited(${c.id},21)">Fait</button>
+                  <button class="btn secondary" onclick="postponeFollowUp(${c.id},7)">Reporter</button>
+                </div>
+              </div>
+            `).join("") || `<div class="muted">Aucune relance urgente.</div>`}
+          </div>
+
+          <div class="card">
+            <div class="section-title">Bientôt</div>
+            <div class="list">
+              ${soon.map(c => `
+                <div class="item" onclick="openClient(${c.id})">
+                  <div class="name">${c.name}</div>
+                  <div class="meta">${c.city} · ${fmtDate(c.nextFollowUp)}</div>
+                </div>
+              `).join("") || `<div class="muted">Aucune relance proche.</div>`}
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function mapView() {
+      const list = filteredClients();
+      return `
+        <div class="header">
+          <h1 class="title">Carte clients</h1>
+          <div class="subtitle">Vue simulée</div>
+        </div>
+        <div class="content">
+          <input class="field" placeholder="Zone, ville, client..." value="${search.replace(/"/g,'&quot;')}" oninput="setSearch(this.value)" />
+          <div class="mapbox">
+            ${list.map((c, i) => `
+              <button class="pin ${c.status}" style="top:${18 + ((i*13)%65)}%;left:${15 + ((i*17)%65)}%;" onclick="openClient(${c.id})"></button>
+            `).join("")}
+            <div style="position:absolute;left:14px;right:14px;bottom:14px;background:rgba(255,255,255,.95);border-radius:18px;padding:14px;border:1px solid #fff;">
+              <div class="name">Google Maps</div>
+              <div class="meta" style="margin-top:6px;">Dans la vraie version, cette zone affichera la carte réelle avec itinéraires.</div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function tourView() {
+      const tour = clients.filter(c => [1,2,3,4].includes(c.id));
+      return `
+        <div class="header">
+          <h1 class="title">Tournée du jour</h1>
+          <div class="subtitle">4 étapes · relances incluses</div>
+        </div>
+        <div class="content">
+          <div class="card dark">
+            <div class="subtitle">Parcours du jour</div>
+            <div style="font-size:24px;font-weight:700;margin-top:6px;">Montpellier / Hérault</div>
+            <a class="btn secondary" style="margin-top:12px;display:inline-block;text-decoration:none;" target="_blank" href="https://www.google.com/maps">GPS</a>
+          </div>
+
+          ${tour.map((c, i) => `
+            <div class="card">
+              <div class="row">
+                <div class="row" style="justify-content:flex-start;">
+                  <div style="width:32px;height:32px;border-radius:999px;background:#111;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;">${i+1}</div>
+                  <div>
+                    <div class="name">${c.name}</div>
+                    <div class="meta">${c.city} · ${c.type}</div>
+                  </div>
+                </div>
+                <span class="badge ${c.nextFollowUp && c.nextFollowUp <= today ? 'prospect' : 'client'}">${c.nextFollowUp && c.nextFollowUp <= today ? 'Relance' : 'Visite'}</span>
+              </div>
+              <div class="grid2" style="margin-top:12px;">
+                <a class="btn secondary" href="${c.phone ? `tel:${c.phone}` : '#'}">Appeler</a>
+                <a class="btn secondary" target="_blank" href="${mapsUrl(c.address)}">Itinéraire</a>
+                <button class="btn" onclick="markVisited(${c.id},21)">Visité</button>
+                <button class="btn secondary" onclick="openClient(${c.id})">Note</button>
+              </div>
+            </div>
+          `).join("")}
+        </div>
+      `;
+    }
+
+    function nav(current) {
+      const tabs = [
+        ["home","Accueil"],
+        ["clients","Clients"],
+        ["relances","Relances"],
+        ["map","Carte"],
+        ["tour","Tournée"]
+      ];
+      return `
+        <div class="nav">
+          <div class="nav-inner">
+            ${tabs.map(([key,label]) => `<button class="tab ${current===key?'active':''}" onclick="go('${key}')">${label}</button>`).join("")}
+          </div>
+        </div>
+      `;
+    }
+
+    function go(next) {
+      screen = next;
+      render();
+    }
+
+    function setSearch(v) {
+      search = v;
+      render();
+    }
+
+    function render() {
+      let html = "";
+      if (screen === "home") html = homeView();
+      if (screen === "clients") html = clientsView();
+      if (screen === "client") html = clientView();
+      if (screen === "relances") html = relancesView();
+      if (screen === "map") html = mapView();
+      if (screen === "tour") html = tourView();
+
+      document.getElementById("app").innerHTML = html + nav(screen === "client" ? "clients" : screen);
+    }
+
+    window.go = go;
+    window.openClient = openClient;
+    window.markVisited = markVisited;
+    window.postponeFollowUp = postponeFollowUp;
+    window.addNote = addNote;
+    window.addOrder = addOrder;
+    window.setSearch = setSearch;
+
+    render();
+  </script>
+</body>
+</html>
