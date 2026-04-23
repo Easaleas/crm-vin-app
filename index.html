@@ -11,7 +11,8 @@ body{font-family:Arial;margin:0;background:#f5f5f5}
 .card{background:#fff;padding:12px;border-radius:12px;margin-bottom:10px}
 .btn{padding:10px;border:none;border-radius:8px;background:#111;color:#fff;margin-top:5px;width:100%}
 .field{width:100%;padding:8px;margin-top:5px}
-.row{display:flex;justify-content:space-between;align-items:center}
+.row{display:flex;justify-content:space-between;align-items:center;margin-top:5px}
+.small{font-size:12px;color:#666}
 </style>
 </head>
 
@@ -19,15 +20,19 @@ body{font-family:Arial;margin:0;background:#f5f5f5}
 <div class="app" id="app"></div>
 
 <script>
-let data = {
+let today=new Date().toISOString().slice(0,10)
+
+let data={
 clients:[
-{ id:1,name:"Client test",city:"Montpellier",orders:[],tastings:[] }
+{ id:1,name:"Client test",city:"Montpellier",type:"CHR",tariff:"CHR",
+nextFollowUp:"",orders:[],tastings:[] }
 ],
 products:[
 { id:1,name:"Collines Rouge",vintage:"2021",active:true },
 { id:2,name:"Collines Rosé",vintage:"2025",active:true },
 { id:3,name:"Tournée Générale",vintage:"2024",active:true }
-]
+],
+tour:[]
 }
 
 let screen="home"
@@ -37,14 +42,14 @@ function productById(id){
 return data.products.find(p=>p.id===id)
 }
 
-function go(s){
-screen=s
-render()
-}
+function go(s){screen=s;render()}
+function openClient(id){selectedClient=id;screen="client";render()}
 
-function openClient(id){
-selectedClient=id
-screen="client"
+function addTasting(){
+let pid=Number(document.getElementById("tasteProduct").value)
+let rate=Number(document.getElementById("tasteRating").value)
+
+data.clients[0].tastings.push({productId:pid,rating:rate})
 render()
 }
 
@@ -52,17 +57,11 @@ function addOrder(){
 let items=[]
 document.querySelectorAll(".orderLine").forEach(l=>{
 let qty=Number(l.querySelector("input").value)
-if(qty>0){
-items.push({productId:Number(l.dataset.id),qty})
-}
+if(qty>0)items.push({productId:Number(l.dataset.id),qty})
 })
 if(!items.length)return alert("Rien saisi")
 
-data.clients[0].orders.push({
-date:new Date().toISOString().slice(0,10),
-items,
-status:"pending"
-})
+data.clients[0].orders.push({date:today,items,status:"pending"})
 render()
 }
 
@@ -72,23 +71,35 @@ o.status=o.status==="sent"?"pending":"sent"
 render()
 }
 
-function addTasting(){
-let productId=Number(document.getElementById("tasteProduct").value)
-let rating=Number(document.getElementById("tasteRating").value)
-
-data.clients[0].tastings.push({
-productId,rating
-})
+function setRelance(){
+let d=document.getElementById("relanceDate").value
+data.clients[0].nextFollowUp=d
 render()
 }
 
-function viewProductStats(id,type){
-let list=data.clients.filter(c=>{
-if(type==="taste"){
-return c.tastings.some(t=>t.productId===id)
-}else{
-return c.orders.some(o=>o.items.some(i=>i.productId===id))
+function addRelance(){
+let name=prompt("Nom client ?")
+let date=prompt("Date YYYY-MM-DD ?")
+if(!name||!date)return
+data.clients.push({id:Date.now(),name,city:"",orders:[],tastings:[],nextFollowUp:date})
+render()
 }
+
+function openGPS(){
+if(!data.tour.length)return alert("Aucun client tournée")
+
+let base="https://www.google.com/maps/dir/"
+let path=data.tour.map(id=>{
+let c=data.clients.find(x=>x.id===id)
+return encodeURIComponent(c.city||c.name)
+}).join("/")
+window.open(base+path)
+}
+
+function viewStats(id,type){
+let list=data.clients.filter(c=>{
+if(type==="taste")return c.tastings.some(t=>t.productId===id)
+else return c.orders.some(o=>o.items.some(i=>i.productId===id))
 })
 alert(list.map(c=>c.name).join("\n"))
 }
@@ -96,35 +107,48 @@ alert(list.map(c=>c.name).join("\n"))
 function home(){
 return `
 <div class="card">
+<h2>Accueil</h2>
+<button class="btn" onclick="go('clients')">Clients</button>
+<button class="btn" onclick="go('products')">Vins</button>
+<button class="btn" onclick="go('tour')">Tournée</button>
+<button class="btn" onclick="go('relance')">Relances</button>
+</div>`
+}
+
+function clients(){
+return `
+<div class="card">
+<button onclick="go('home')">Retour</button>
 <h2>Clients</h2>
 ${data.clients.map(c=>`
 <div onclick="openClient(${c.id})">${c.name}</div>
 `).join("")}
-</div>
-
-<div class="card">
-<button class="btn" onclick="go('products')">Vins</button>
-</div>
-`
+</div>`
 }
 
 function client(){
 let c=data.clients[0]
-
 return `
 <div class="card">
-<button onclick="go('home')">Retour</button>
+<button onclick="go('clients')">Retour</button>
 <h2>${c.name}</h2>
+
+<select onchange="data.clients[0].tariff=this.value">
+<option>CHR</option>
+<option>Caviste</option>
+<option>Grossiste</option>
+</select>
+
+<input id="relanceDate" type="date" class="field"/>
+<button class="btn" onclick="setRelance()">Relance</button>
+
 </div>
 
 <div class="card">
 <h3>Dégustation</h3>
 <select id="tasteProduct">
-${data.products.map(p=>`
-<option value="${p.id}">${p.name}</option>
-`).join("")}
+${data.products.map(p=>`<option value="${p.id}">${p.name}</option>`).join("")}
 </select>
-
 <select id="tasteRating">
 <option value="1">★</option>
 <option value="2">★★</option>
@@ -132,20 +156,17 @@ ${data.products.map(p=>`
 <option value="4">★★★★</option>
 <option value="5">★★★★★</option>
 </select>
-
 <button class="btn" onclick="addTasting()">Ajouter</button>
 </div>
 
 <div class="card">
 <h3>Commande</h3>
-
 ${data.products.map(p=>`
 <div class="row orderLine" data-id="${p.id}">
 <span>${p.name}</span>
 <input type="number">
 </div>
 `).join("")}
-
 <button class="btn" onclick="addOrder()">Valider</button>
 </div>
 
@@ -157,7 +178,6 @@ ${c.orders.map((o,i)=>`
 ${o.items.map(i=>`
 <div>${productById(i.productId).name} - ${i.qty}</div>
 `).join("")}
-
 <button onclick="toggleOrder(${i})">
 ${o.status==="sent"?"Transmise":"Non transmise"}
 </button>
@@ -172,25 +192,60 @@ return `
 <div class="card">
 <button onclick="go('home')">Retour</button>
 <h2>Vins</h2>
-
 ${data.products.map(p=>`
 <div>
 <b>${p.name}</b>
 <br>
-<button onclick="viewProductStats(${p.id},'taste')">Dégusté</button>
-<button onclick="viewProductStats(${p.id},'order')">Commandé</button>
+<button onclick="viewStats(${p.id},'taste')">Dégusté</button>
+<button onclick="viewStats(${p.id},'order')">Commandé</button>
+</div>
+`).join("")}
+</div>`
+}
+
+function tour(){
+return `
+<div class="card">
+<button onclick="go('home')">Retour</button>
+<h2>Tournée</h2>
+<button class="btn" onclick="openGPS()">GPS tournée</button>
+
+${data.clients.map(c=>`
+<div onclick="data.tour.push(${c.id});render()">
++ ${c.name}
 </div>
 `).join("")}
 
-</div>
-`
+<h3>Ordre</h3>
+${data.tour.map(id=>{
+let c=data.clients.find(x=>x.id===id)
+return `<div>${c.name}</div>`
+}).join("")}
+</div>`
+}
+
+function relance(){
+return `
+<div class="card">
+<button onclick="go('home')">Retour</button>
+<h2>Relances</h2>
+<button class="btn" onclick="addRelance()">+ Ajouter</button>
+
+${data.clients.filter(c=>c.nextFollowUp).map(c=>`
+<div>${c.name} - ${c.nextFollowUp}</div>
+`).join("")}
+</div>`
 }
 
 function render(){
 let html=""
 if(screen==="home")html=home()
+if(screen==="clients")html=clients()
 if(screen==="client")html=client()
 if(screen==="products")html=products()
+if(screen==="tour")html=tour()
+if(screen==="relance")html=relance()
+
 document.getElementById("app").innerHTML=html
 }
 
