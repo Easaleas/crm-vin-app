@@ -3,45 +3,595 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>CRM Vin</title>
+  <title>CRM Vin synchronisé</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    *{box-sizing:border-box}
+    body{margin:0;background:#f5f5f5;font-family:Arial,sans-serif;color:#111;padding-bottom:78px}
+    .app{max-width:460px;margin:0 auto}
+    .header{position:sticky;top:0;background:white;border-bottom:1px solid #ddd;padding:14px 16px;z-index:10}
+    .title{font-size:22px;font-weight:700}
+    .sub{font-size:12px;color:#666;margin-top:4px}
+    .content{padding:12px;display:flex;flex-direction:column;gap:12px}
+    .card,.item{background:white;border:1px solid #ddd;border-radius:14px;padding:14px}
+    .dark{background:#111;color:white}
+    .row{display:flex;justify-content:space-between;align-items:center;gap:10px}
+    .grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+    .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+    .list{display:flex;flex-direction:column;gap:8px}
+    .name{font-weight:700}
+    .muted{font-size:12px;color:#666}
+    .dark .muted{color:#ddd}
+    .btn{border:0;border-radius:10px;padding:10px 12px;background:#111;color:white;cursor:pointer}
+    .btn.secondary{background:white;color:#111;border:1px solid #ddd}
+    .btn.red{background:#fff0f0;color:#a00020;border:1px solid #efb7c1}
+    .btn.blue{background:#eaf3ff;color:#0f4ea8;border:1px solid #c3d9ff}
+    input,select,textarea{width:100%;padding:10px;border:1px solid #ddd;border-radius:10px;background:white}
+    textarea{min-height:70px}
+    .nav{position:fixed;left:0;right:0;bottom:0;background:white;border-top:1px solid #ddd;padding:8px}
+    .nav-inner{max-width:460px;margin:0 auto;display:grid;grid-template-columns:repeat(6,1fr);gap:6px}
+    .tab{border:0;background:transparent;border-radius:10px;padding:8px 4px;font-size:11px;color:#666}
+    .tab.active{background:#111;color:white}
+    .badge{font-size:12px;padding:4px 8px;border-radius:999px;background:#eee}
+    .stat{font-size:28px;font-weight:700}
+    .modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.4);display:flex;align-items:flex-end;justify-content:center;z-index:30}
+    .modal{width:100%;max-width:460px;background:white;border-radius:16px 16px 0 0;padding:14px;max-height:88vh;overflow:auto}
+  </style>
 </head>
+<body>
+<div id="app" class="app"></div>
 
-<body style="font-family: Arial; padding:20px">
-
-<h2>CRM Vin (version synchronisée)</h2>
-
-<input id="name" placeholder="Nom client">
-<button onclick="addClient()">Ajouter</button>
-
-<ul id="list"></ul>
-
-<script>
+<script type="module">
 const supabase = window.supabase.createClient(
   import.meta.env.VITE_SUPABASE_URL,
   import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY
 );
 
-async function loadClients() {
-  const { data } = await supabase.from("clients").select("*");
-  const list = document.getElementById("list");
-  list.innerHTML = "";
-  data.forEach(c => {
-    list.innerHTML += `<li>${c.name}</li>`;
+let state = {
+  screen: "home",
+  clientId: null,
+  modal: null,
+  search: ""
+};
+
+let db = {
+  clients: [],
+  products: [],
+  appointments: [],
+  tours: [],
+  tour_steps: [],
+  orders: [],
+  order_items: []
+};
+
+const today = new Date().toISOString().slice(0,10);
+
+function esc(v){
+  return String(v ?? "").replace(/[&<>"']/g, m => ({
+    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
+  }[m]));
+}
+function fmtDate(v){
+  if(!v) return "—";
+  const d = new Date(v);
+  return isNaN(d) ? v : d.toLocaleDateString("fr-FR");
+}
+function clientById(id){ return db.clients.find(c => c.id === id); }
+function productById(id){ return db.products.find(p => p.id === id); }
+
+async function loadAll(){
+  const tables = ["clients","products","appointments","tours","tour_steps","orders","order_items"];
+  for(const t of tables){
+    const { data, error } = await supabase.from(t).select("*");
+    if(error) console.error(t,error);
+    db[t] = data || [];
+  }
+  if(db.products.length === 0){
+    await seedProducts();
+    return loadAll();
+  }
+  render();
+}
+
+async function seedProducts(){
+  const products = [
+    {name:"Les Collines Rouge", family:"Les Collines", vintage:"2021", color:"Rouge", active:true},
+    {name:"Les Collines Rosé", family:"Les Collines", vintage:"2025", color:"Rosé", active:true},
+    {name:"Tournée Générale", family:"Tournée Générale", vintage:"2024", color:"Rouge", active:true},
+    {name:"Allegro", family:"Allegro", vintage:"2023", color:"Blanc", active:true},
+    {name:"Les Collines Blanc", family:"Les Collines", vintage:"2025", color:"Blanc", active:true}
+  ];
+  await supabase.from("products").insert(products);
+}
+
+async function addClient(){
+  const name = document.getElementById("client-name").value.trim();
+  if(!name) return alert("Nom obligatoire");
+  const row = {
+    name,
+    type: document.getElementById("client-type").value,
+    tariff: document.getElementById("client-tariff").value,
+    status: document.getElementById("client-status").value,
+    city: document.getElementById("client-city").value.trim(),
+    address: document.getElementById("client-address").value.trim(),
+    phone: document.getElementById("client-phone").value.trim(),
+    email: document.getElementById("client-email").value.trim(),
+    notes: document.getElementById("client-notes").value.trim()
+  };
+  await supabase.from("clients").insert([row]);
+  state.modal = null;
+  await loadAll();
+}
+
+async function updateClient(id){
+  const row = {
+    name: document.getElementById("edit-name").value.trim(),
+    type: document.getElementById("edit-type").value,
+    tariff: document.getElementById("edit-tariff").value,
+    status: document.getElementById("edit-status").value,
+    city: document.getElementById("edit-city").value.trim(),
+    address: document.getElementById("edit-address").value.trim(),
+    phone: document.getElementById("edit-phone").value.trim(),
+    email: document.getElementById("edit-email").value.trim(),
+    notes: document.getElementById("edit-notes").value.trim()
+  };
+  await supabase.from("clients").update(row).eq("id", id);
+  state.modal = null;
+  await loadAll();
+}
+
+async function createAppointment(clientId){
+  const date = document.getElementById("rdv-date").value;
+  if(!date) return alert("Choisis une date");
+  await supabase.from("appointments").insert([{
+    client_id: clientId,
+    date,
+    time: document.getElementById("rdv-time").value || null,
+    note: document.getElementById("rdv-note").value.trim()
+  }]);
+  state.modal = null;
+  await loadAll();
+}
+
+async function deleteAppointment(id){
+  await supabase.from("appointments").delete().eq("id", id);
+  state.modal = null;
+  await loadAll();
+}
+
+async function createOrder(clientId){
+  const rows = [];
+  db.products.forEach(p => {
+    const qty = Number(document.getElementById("qty-"+p.id)?.value || 0);
+    if(qty > 0) rows.push({product_id:p.id, qty});
   });
+  if(rows.length === 0) return alert("Aucune quantité");
+  const { data: order, error } = await supabase
+    .from("orders")
+    .insert([{client_id:clientId, date:today, status:"pending", comment:document.getElementById("order-comment").value.trim()}])
+    .select()
+    .single();
+  if(error) return alert(error.message);
+  await supabase.from("order_items").insert(rows.map(r => ({...r, order_id: order.id})));
+  state.modal = null;
+  await loadAll();
 }
 
-async function addClient() {
-  const name = document.getElementById("name").value;
-  if(!name) return;
-
-  await supabase.from("clients").insert([{ name }]);
-  document.getElementById("name").value = "";
-  loadClients();
+async function toggleOrder(id, status){
+  await supabase.from("orders").update({status: status === "sent" ? "pending" : "sent"}).eq("id", id);
+  await loadAll();
 }
 
-loadClients();
+async function addToActiveTour(clientId){
+  let active = db.tours.find(t => t.active);
+  if(!active){
+    const { data } = await supabase.from("tours").insert([{name:"Tournée du jour", date:today, active:true}]).select().single();
+    active = data;
+  }
+  const exists = db.tour_steps.some(s => s.tour_id === active.id && s.client_id === clientId);
+  if(exists) return;
+  const position = db.tour_steps.filter(s => s.tour_id === active.id).length;
+  await supabase.from("tour_steps").insert([{tour_id:active.id, client_id:clientId, position}]);
+  await loadAll();
+}
+
+async function removeFromTour(stepId){
+  await supabase.from("tour_steps").delete().eq("id", stepId);
+  await loadAll();
+}
+
+async function createSavedTour(){
+  const name = document.getElementById("tour-name").value.trim();
+  if(!name) return alert("Nom obligatoire");
+  const date = document.getElementById("tour-date").value || null;
+  const selected = [...document.querySelectorAll("[data-tour-client]")].map((el,i)=>({
+    client_id: el.dataset.tourClient,
+    position: i,
+    time: el.querySelector("input").value || null
+  }));
+  if(selected.length === 0) return alert("Ajoute au moins un client");
+  const { data: tour } = await supabase.from("tours").insert([{name,date,active:false}]).select().single();
+  await supabase.from("tour_steps").insert(selected.map(s => ({...s, tour_id: tour.id})));
+  state.modal = null;
+  await loadAll();
+}
+
+async function loadTour(tourId){
+  await supabase.from("tours").update({active:false}).neq("id", tourId);
+  await supabase.from("tours").update({active:true}).eq("id", tourId);
+  await loadAll();
+}
+
+async function deleteTour(tourId){
+  await supabase.from("tours").delete().eq("id", tourId);
+  await loadAll();
+}
+
+function activeTour(){
+  return db.tours.find(t => t.active);
+}
+function activeSteps(){
+  const t = activeTour();
+  if(!t) return [];
+  return db.tour_steps.filter(s => s.tour_id === t.id).sort((a,b)=>a.position-b.position);
+}
+function savedTours(){
+  return db.tours.filter(t => !t.active).sort((a,b)=>(b.created_at||"").localeCompare(a.created_at||""));
+}
+function appointmentsForDate(date){
+  return db.appointments.filter(a => a.date === date).sort((a,b)=>(a.time||"").localeCompare(b.time||""));
+}
+function futureAppointmentsForClient(id){
+  return db.appointments.filter(a => a.client_id === id && a.date >= today).sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time));
+}
+function ordersForClient(id){
+  return db.orders.filter(o => o.client_id === id).sort((a,b)=>b.date.localeCompare(a.date));
+}
+function orderItems(orderId){
+  return db.order_items.filter(i => i.order_id === orderId);
+}
+function mapsUrl(address){
+  return "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(address || "");
+}
+function openTourMaps(){
+  const addresses = activeSteps().map(s => clientById(s.client_id)?.address).filter(Boolean);
+  if(addresses.length === 0) return alert("Aucune adresse");
+  const origin = addresses[0];
+  const destination = addresses[addresses.length-1];
+  const waypoints = addresses.slice(1,-1).join("|");
+  let url = `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(origin)}&destination=${encodeURIComponent(destination)}&travelmode=driving`;
+  if(waypoints) url += `&waypoints=${encodeURIComponent(waypoints)}`;
+  window.open(url, "_blank");
+}
+
+function header(title, sub=""){
+  return `<div class="header"><div class="title">${esc(title)}</div>${sub?`<div class="sub">${esc(sub)}</div>`:""}</div>`;
+}
+
+function viewHome(){
+  const rdv = appointmentsForDate(today);
+  const pending = db.orders.filter(o => o.status !== "sent").length;
+  return `
+    ${header("Bonjour 👋","App synchronisée")}
+    <div class="content">
+      <div class="card dark">
+        <div class="name">Tournée du jour</div>
+        <div class="muted">${activeSteps().length} étape(s)</div>
+        <div class="grid2" style="margin-top:8px">
+          <button class="btn secondary" onclick="go('tour')">Voir tournée</button>
+          <button class="btn secondary" onclick="openTourMaps()">GPS tournée</button>
+        </div>
+      </div>
+      <div class="grid3">
+        <div class="card" onclick="go('clients')"><div class="stat">${db.clients.length}</div><div class="muted">Clients</div></div>
+        <div class="card" onclick="go('tour')"><div class="stat">${rdv.length}</div><div class="muted">RDV</div></div>
+        <div class="card" onclick="go('orders')"><div class="stat">${pending}</div><div class="muted">Cmd</div></div>
+      </div>
+      ${rdv.length ? `<div class="card"><div class="name">RDV aujourd’hui</div><div class="list" style="margin-top:8px">${rdv.map(a=>{
+        const c=clientById(a.client_id);
+        return `<div class="item"><div class="name">${esc(c?.name)}</div><div class="muted">${esc(a.time||"Heure libre")} · ${esc(c?.city||"")}</div></div>`;
+      }).join("")}</div></div>`:""}
+    </div>
+  `;
+}
+
+function viewClients(){
+  const q = state.search.toLowerCase();
+  const rows = db.clients.filter(c => `${c.name} ${c.city} ${c.type}`.toLowerCase().includes(q));
+  return `
+    ${header("Clients",`${rows.length} fiche(s)`)}
+    <div class="content">
+      <button class="btn" onclick="openClientModal()">+ Nouveau client</button>
+      <input placeholder="Recherche client..." value="${esc(state.search)}" oninput="setSearch(this.value)">
+      <div class="list">
+        ${rows.map(c => `
+          <div class="item" onclick="openClient('${c.id}')">
+            <div class="row">
+              <div><div class="name">${esc(c.name)}</div><div class="muted">${esc(c.city||"")} · ${esc(c.type||"")}</div></div>
+              <span class="badge">${esc(c.status||"")}</span>
+            </div>
+          </div>
+        `).join("")}
+      </div>
+    </div>
+  `;
+}
+
+function viewClient(){
+  const c = clientById(state.clientId);
+  if(!c) return `${header("Client")}<div class="content"><div class="card">Client introuvable</div></div>`;
+  const rdv = futureAppointmentsForClient(c.id);
+  const orders = ordersForClient(c.id);
+  return `
+    ${header(c.name,`${c.type||""} · ${c.city||""}`)}
+    <div class="content">
+      <div class="card">
+        <div class="grid2">
+          <button class="btn secondary" onclick="openEditClient('${c.id}')">Modifier</button>
+          <button class="btn secondary" onclick="openAppointmentModal('${c.id}')">Prévoir RDV</button>
+          <button class="btn secondary" onclick="addToActiveTour('${c.id}')">+ tournée</button>
+          <a class="btn secondary" href="${mapsUrl(c.address)}" target="_blank">GPS</a>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="name">Rendez-vous à venir</div>
+        <div class="list" style="margin-top:8px">
+          ${rdv.length ? rdv.map(a=>`
+            <div class="item">
+              <div class="row">
+                <div><div class="name">${fmtDate(a.date)}</div><div class="muted">${esc(a.time||"Heure libre")} ${a.note? "· "+esc(a.note):""}</div></div>
+                <button class="btn red" onclick="deleteAppointment('${a.id}')">Annuler</button>
+              </div>
+            </div>`).join("") : `<div class="muted">Aucun RDV prévu.</div>`}
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="name">Commande rapide</div>
+        ${db.products.map(p=>`
+          <div class="row" style="margin-top:8px">
+            <div><div class="name">${esc(p.name)}</div><div class="muted">${esc(p.vintage||"")}</div></div>
+            <input id="qty-${p.id}" type="number" min="0" placeholder="0" style="width:90px">
+          </div>
+        `).join("")}
+        <textarea id="order-comment" placeholder="Commentaire" style="margin-top:8px"></textarea>
+        <button class="btn" style="margin-top:8px" onclick="createOrder('${c.id}')">Valider commande</button>
+      </div>
+
+      <div class="card">
+        <div class="name">Commandes</div>
+        <div class="list" style="margin-top:8px">
+          ${orders.length ? orders.map(o=>`
+            <div class="item">
+              <div class="row">
+                <div><div class="name">${fmtDate(o.date)}</div><div class="muted">${o.status==="sent"?"Transmise":"À transmettre"}</div></div>
+                <button class="btn ${o.status==="sent"?"blue":"secondary"}" onclick="toggleOrder('${o.id}','${o.status}')">${o.status==="sent"?"✅":"⬜"}</button>
+              </div>
+              <div class="muted" style="margin-top:8px">
+                ${orderItems(o.id).map(i => `${esc(productById(i.product_id)?.name||"Vin")} x ${i.qty}`).join("<br>")}
+              </div>
+            </div>
+          `).join("") : `<div class="muted">Aucune commande.</div>`}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function viewTour(){
+  const steps = activeSteps();
+  const todayRdv = appointmentsForDate(today);
+  return `
+    ${header("Tournée & RDV",`${steps.length} étape(s)`)}
+    <div class="content">
+      <div class="card dark">
+        <div class="name">Tournée active</div>
+        <div class="grid2" style="margin-top:8px">
+          <button class="btn secondary" onclick="openTourMaps()">GPS tournée</button>
+          <button class="btn secondary" onclick="openCreateTour()">Créer tournée</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="name">RDV du jour</div>
+        <div class="list" style="margin-top:8px">
+          ${todayRdv.length ? todayRdv.map(a=>{
+            const c=clientById(a.client_id);
+            const included = steps.some(s=>s.client_id===a.client_id);
+            return `<div class="item"><div class="row"><div><div class="name">${esc(c?.name)}</div><div class="muted">${esc(a.time||"Heure libre")} · ${esc(c?.city||"")}</div></div><button class="btn ${included?"red":"blue"}" onclick="${included?`alert('Déjà dans la tournée')`:`addToActiveTour('${a.client_id}')`}">${included?"✓":"+"}</button></div></div>`;
+          }).join("") : `<div class="muted">Aucun RDV aujourd’hui.</div>`}
+        </div>
+      </div>
+
+      <div class="list">
+        ${steps.map(s=>{
+          const c=clientById(s.client_id);
+          return `<div class="card"><div class="row"><div><div class="name">${esc(c?.name)}</div><div class="muted">${esc(c?.city||"")}</div></div><button class="btn red" onclick="removeFromTour('${s.id}')">Retirer</button></div></div>`;
+        }).join("") || `<div class="muted">Aucune tournée active.</div>`}
+      </div>
+
+      <div class="card">
+        <div class="name">Tournées enregistrées</div>
+        <div class="list" style="margin-top:8px">
+          ${savedTours().map(t=>`
+            <div class="item">
+              <div class="name">${esc(t.name)}</div>
+              <div class="muted">${t.date?fmtDate(t.date):"Sans date"}</div>
+              <div class="grid2" style="margin-top:8px">
+                <button class="btn blue" onclick="loadTour('${t.id}')">Charger</button>
+                <button class="btn red" onclick="deleteTour('${t.id}')">Supprimer</button>
+              </div>
+            </div>
+          `).join("") || `<div class="muted">Aucune tournée enregistrée.</div>`}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function viewProducts(){
+  return `
+    ${header("Vins",`${db.products.length} produit(s)`)}
+    <div class="content">
+      ${db.products.map(p=>`
+        <div class="item">
+          <div class="name">${esc(p.name)}</div>
+          <div class="muted">${esc(p.family||"")} · ${esc(p.vintage||"")} · ${esc(p.color||"")}</div>
+        </div>
+      `).join("")}
+    </div>
+  `;
+}
+
+function viewOrders(){
+  const rows = db.orders.sort((a,b)=>b.date.localeCompare(a.date));
+  return `
+    ${header("Commandes",`${rows.length} commande(s)`)}
+    <div class="content">
+      ${rows.map(o=>{
+        const c=clientById(o.client_id);
+        return `<div class="item"><div class="row"><div><div class="name">${esc(c?.name||"Client")}</div><div class="muted">${fmtDate(o.date)} · ${o.status==="sent"?"Transmise":"À transmettre"}</div></div><button class="btn ${o.status==="sent"?"blue":"secondary"}" onclick="toggleOrder('${o.id}','${o.status}')">${o.status==="sent"?"✅":"⬜"}</button></div></div>`;
+      }).join("") || `<div class="muted">Aucune commande.</div>`}
+    </div>
+  `;
+}
+
+function modalHtml(){
+  if(!state.modal) return "";
+  if(state.modal.type==="client"){
+    return `<div class="modal-backdrop" onclick="closeModal()"><div class="modal" onclick="event.stopPropagation()">
+      <div class="row"><div class="name">Nouveau client</div><button class="btn secondary" onclick="closeModal()">Fermer</button></div>
+      <input id="client-name" placeholder="Nom établissement" style="margin-top:10px">
+      <select id="client-type" style="margin-top:8px"><option>Caviste</option><option>CHR</option><option>Grossiste</option></select>
+      <select id="client-tariff" style="margin-top:8px"><option>Caviste</option><option>CHR</option><option>Grossiste</option></select>
+      <select id="client-status" style="margin-top:8px"><option value="prospect">prospect</option><option value="client">client</option><option value="inactif">inactif</option></select>
+      <input id="client-city" placeholder="Ville" style="margin-top:8px">
+      <input id="client-address" placeholder="Adresse" style="margin-top:8px">
+      <input id="client-phone" placeholder="Téléphone" style="margin-top:8px">
+      <input id="client-email" placeholder="Email" style="margin-top:8px">
+      <textarea id="client-notes" placeholder="Notes" style="margin-top:8px"></textarea>
+      <button class="btn" style="margin-top:8px" onclick="addClient()">Créer</button>
+    </div></div>`;
+  }
+  if(state.modal.type==="editClient"){
+    const c=clientById(state.modal.id);
+    return `<div class="modal-backdrop" onclick="closeModal()"><div class="modal" onclick="event.stopPropagation()">
+      <div class="row"><div class="name">Modifier client</div><button class="btn secondary" onclick="closeModal()">Fermer</button></div>
+      <input id="edit-name" value="${esc(c.name)}" style="margin-top:10px">
+      <select id="edit-type" style="margin-top:8px">${["Caviste","CHR","Grossiste"].map(v=>`<option ${c.type===v?"selected":""}>${v}</option>`).join("")}</select>
+      <select id="edit-tariff" style="margin-top:8px">${["Caviste","CHR","Grossiste"].map(v=>`<option ${c.tariff===v?"selected":""}>${v}</option>`).join("")}</select>
+      <select id="edit-status" style="margin-top:8px">${["prospect","client","inactif"].map(v=>`<option value="${v}" ${c.status===v?"selected":""}>${v}</option>`).join("")}</select>
+      <input id="edit-city" value="${esc(c.city||"")}" placeholder="Ville" style="margin-top:8px">
+      <input id="edit-address" value="${esc(c.address||"")}" placeholder="Adresse" style="margin-top:8px">
+      <input id="edit-phone" value="${esc(c.phone||"")}" placeholder="Téléphone" style="margin-top:8px">
+      <input id="edit-email" value="${esc(c.email||"")}" placeholder="Email" style="margin-top:8px">
+      <textarea id="edit-notes" style="margin-top:8px">${esc(c.notes||"")}</textarea>
+      <button class="btn" style="margin-top:8px" onclick="updateClient('${c.id}')">Enregistrer</button>
+    </div></div>`;
+  }
+  if(state.modal.type==="rdv"){
+    const c=clientById(state.modal.clientId);
+    return `<div class="modal-backdrop" onclick="closeModal()"><div class="modal" onclick="event.stopPropagation()">
+      <div class="row"><div><div class="name">Prévoir RDV</div><div class="muted">${esc(c?.name)}</div></div><button class="btn secondary" onclick="closeModal()">Fermer</button></div>
+      <label class="muted">Date</label><input id="rdv-date" type="date" style="margin-top:6px">
+      <label class="muted" style="display:block;margin-top:8px">Heure</label><input id="rdv-time" type="time" style="margin-top:6px">
+      <textarea id="rdv-note" placeholder="Note" style="margin-top:8px"></textarea>
+      <button class="btn" style="margin-top:8px" onclick="createAppointment('${c.id}')">Créer RDV</button>
+    </div></div>`;
+  }
+  if(state.modal.type==="tour"){
+    return `<div class="modal-backdrop" onclick="closeModal()"><div class="modal" onclick="event.stopPropagation()">
+      <div class="row"><div class="name">Créer tournée</div><button class="btn secondary" onclick="closeModal()">Fermer</button></div>
+      <input id="tour-name" placeholder="Nom de tournée" style="margin-top:10px">
+      <input id="tour-date" type="date" style="margin-top:8px" onchange="renderTourRdvSuggestions()">
+      <input id="tour-client-search" placeholder="Rechercher client" style="margin-top:8px" oninput="renderTourClientSuggestions()">
+      <div id="tour-client-suggestions" class="suggestions"></div>
+      <div class="card" style="margin-top:10px"><div class="name">RDV du jour choisi</div><div id="tour-rdv-suggestions" class="list" style="margin-top:8px"></div></div>
+      <div class="card" style="margin-top:10px"><div class="name">Clients ajoutés</div><div id="tour-selected" class="list" style="margin-top:8px"></div></div>
+      <button class="btn" style="margin-top:8px" onclick="createSavedTour()">Enregistrer</button>
+    </div></div>`;
+  }
+  return "";
+}
+
+function renderTourClientSuggestions(){
+  const q = document.getElementById("tour-client-search")?.value.toLowerCase() || "";
+  const box = document.getElementById("tour-client-suggestions");
+  if(!box) return;
+  box.innerHTML = db.clients
+    .filter(c=>`${c.name} ${c.city}`.toLowerCase().includes(q))
+    .slice(0,6)
+    .map(c=>`<div class="suggestion" onclick="addTourClient('${c.id}')">${esc(c.name)} · ${esc(c.city||"")}</div>`)
+    .join("");
+}
+function renderTourRdvSuggestions(){
+  const date = document.getElementById("tour-date")?.value;
+  const box = document.getElementById("tour-rdv-suggestions");
+  if(!box) return;
+  const rdv = appointmentsForDate(date);
+  box.innerHTML = rdv.length ? rdv.map(a=>{
+    const c=clientById(a.client_id);
+    return `<div class="item"><div class="row"><div><div class="name">${esc(c?.name)}</div><div class="muted">${esc(a.time||"Heure libre")} · ${esc(c?.city||"")}</div></div><button class="btn blue" onclick="addTourClient('${a.client_id}')">+</button></div></div>`;
+  }).join("") : `<div class="muted">Aucun RDV ce jour.</div>`;
+}
+function addTourClient(id){
+  const box = document.getElementById("tour-selected");
+  if(!box || box.querySelector(`[data-tour-client="${id}"]`)) return;
+  const c=clientById(id);
+  const div=document.createElement("div");
+  div.className="item";
+  div.dataset.tourClient=id;
+  div.innerHTML=`<div class="row"><div><div class="name">${esc(c.name)}</div><div class="muted">${esc(c.city||"")}</div></div><input style="width:90px" placeholder="heure"></div>`;
+  box.appendChild(div);
+}
+
+function nav(){
+  const tabs = [["home","Accueil"],["clients","Clients"],["tour","Tournée"],["products","Vins"],["orders","Cmd"],["stats","Stats"]];
+  return `<div class="nav"><div class="nav-inner">${tabs.map(([k,l])=>`<button class="tab ${state.screen===k?"active":""}" onclick="go('${k}')">${l}</button>`).join("")}</div></div>`;
+}
+function viewStats(){
+  return `${header("Stats","V1 connectée")}<div class="content">
+    <div class="grid3">
+      <div class="card"><div class="stat">${db.clients.length}</div><div class="muted">Clients</div></div>
+      <div class="card"><div class="stat">${db.appointments.length}</div><div class="muted">RDV</div></div>
+      <div class="card"><div class="stat">${db.orders.length}</div><div class="muted">Commandes</div></div>
+    </div>
+  </div>`;
+}
+
+function render(){
+  let html = "";
+  if(state.screen==="home") html=viewHome();
+  if(state.screen==="clients") html=viewClients();
+  if(state.screen==="client") html=viewClient();
+  if(state.screen==="tour") html=viewTour();
+  if(state.screen==="products") html=viewProducts();
+  if(state.screen==="orders") html=viewOrders();
+  if(state.screen==="stats") html=viewStats();
+  document.getElementById("app").innerHTML = html + nav() + modalHtml();
+  if(state.modal?.type==="tour"){
+    setTimeout(()=>{renderTourClientSuggestions(); renderTourRdvSuggestions();},0);
+  }
+}
+
+function go(screen){ state.screen=screen; render(); }
+function openClient(id){ state.clientId=id; state.screen="client"; render(); }
+function openClientModal(){ state.modal={type:"client"}; render(); }
+function openEditClient(id){ state.modal={type:"editClient",id}; render(); }
+function openAppointmentModal(clientId){ state.modal={type:"rdv",clientId}; render(); }
+function openCreateTour(){ state.modal={type:"tour"}; render(); }
+function closeModal(){ state.modal=null; render(); }
+function setSearch(v){ state.search=v; render(); }
+
+Object.assign(window,{
+  go, openClient, openClientModal, openEditClient, openAppointmentModal, openCreateTour,
+  closeModal, setSearch, addClient, updateClient, createAppointment, deleteAppointment,
+  createOrder, toggleOrder, addToActiveTour, removeFromTour, createSavedTour, loadTour,
+  deleteTour, openTourMaps, renderTourClientSuggestions, renderTourRdvSuggestions, addTourClient
+});
+
+loadAll();
 </script>
-
 </body>
 </html>
